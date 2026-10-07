@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WPH Room Status</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#14213d;--muted:#5b6475;--line:#e3e7ee;--brand:#1f3a5f;--brand2:#2c5282;
+  --green:#1e8e3e;--green-bg:#e6f4ea;--amber:#b06000;--amber-bg:#fef3e0;--red:#c5221f;--red-bg:#fce8e6;
+  --blue:#1a5fb4;--blue-bg:#e8f0fe;--grey:#5f6368;--grey-bg:#eef0f3;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;
+  --green:#7bd88f;--green-bg:#173823;--amber:#f5b85c;--amber-bg:#3a2a12;--red:#f28b82;--red-bg:#3c1a19;
+  --blue:#8ab4f8;--blue-bg:#16294a;--grey:#b7bdc8;--grey-bg:#232d3d;}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;
+  --green:#7bd88f;--green-bg:#173823;--amber:#f5b85c;--amber-bg:#3a2a12;--red:#f28b82;--red-bg:#3c1a19;--blue:#8ab4f8;--blue-bg:#16294a;--grey:#b7bdc8;--grey-bg:#232d3d;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 16px 22px}
+header .proj{font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase}
+header h1{margin:6px 0 2px;font-size:30px;letter-spacing:.02em}
+header .sub{font-size:15px;opacity:.95}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px 10px;font-size:13px}
+main{max-width:640px;margin:-12px auto 0;padding:0 12px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
+.card h2{margin:0;padding:12px 14px;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.k{color:var(--muted);flex:1 1 auto;min-width:0}
+.v{font-weight:600;text-align:right;flex:0 1 auto;max-width:62%;overflow-wrap:anywhere}
+.chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;white-space:nowrap}
+.c-green{color:var(--green);background:var(--green-bg)}.c-amber{color:var(--amber);background:var(--amber-bg)}
+.c-red{color:var(--red);background:var(--red-bg)}.c-blue{color:var(--blue);background:var(--blue-bg)}.c-grey{color:var(--grey);background:var(--grey-bg)}
+.empty{color:var(--muted);font-weight:400;font-style:italic}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.stat{background:var(--card);padding:12px 14px}
+.stat b{display:block;font-size:24px}
+.stat span{color:var(--muted);font-size:12.5px}
+.bar{height:6px;background:var(--grey-bg);border-radius:4px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand2)}
+.summary{display:flex;gap:8px;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:4px 16px 24px}
+.msg{padding:28px 16px;text-align:center;color:var(--muted)}
+input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:16px}
+.list a{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}
+.list a span{color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand2);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 10px}
+@keyframes s{to{transform:rotate(360deg)}}
+.sbar{display:flex;height:8px;border-radius:5px;overflow:hidden;background:var(--grey-bg);margin:6px 0 2px}
+.sbar i{display:block}.b-green{background:var(--green)}.b-amber{background:var(--amber)}.b-red{background:var(--red)}.b-blue{background:var(--blue)}.b-grey,.b-none{background:var(--line)}
+.row.col{display:block}.rowtop{display:flex;justify-content:space-between;gap:12px}
+.legend{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.legend .chip{font-size:11.5px;padding:1px 8px}
+.pct{color:var(--muted);font-weight:500;font-size:13px;margin-left:4px}
+.thead{background:var(--grey-bg);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding-top:6px;padding-bottom:6px}
+.thead .k,.thead .v{color:var(--muted);font-weight:600}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--line)}
+.d-green{background:var(--green)}.d-amber{background:var(--amber)}.d-red{background:var(--red)}.d-blue{background:var(--blue)}
+.list a b span{color:var(--muted);font-weight:500;margin-left:6px}
+</style>
+</head>
+<body>
+<header id="hdr"><div class="proj" id="proj">Qiddiya Water Park Hotel</div><h1 id="title">Room status</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div></header>
+<main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
+<footer id="foot"></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ====== SETTINGS ======
+   DATA_URL: the Excel register. Keep it next to this page (same folder) and keep the file name. */
+const DATA_URL = "WPH_Room_Register.xlsx";
+/* ====================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(v){
+  if(v===null||v===undefined||v==="")return "";
+  let d=v instanceof Date?v:(typeof v==="number"?new Date(Math.round((v-25569)*864e5)):new Date(v));
+  if(isNaN(d))return String(v);
+  d=new Date(d.getTime()+432e5);
+  return String(d.getUTCDate()).padStart(2,"0")+"-"+MON[d.getUTCMonth()]+"-"+d.getUTCFullYear();
+}
+const blank=v=>v===null||v===undefined||String(v).trim()==="";
+function sheet(wb,name){const ws=wb.Sheets[name];return ws?XLSX.utils.sheet_to_json(ws,{defval:"",raw:true}):[]}
+
+async function load(){
+  const res=await fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"});
+  if(!res.ok)throw new Error("Could not load the register ("+res.status+")");
+  const buf=await res.arrayBuffer();
+  const wb=XLSX.read(buf,{type:"array",cellDates:true});
+  const cfg={};sheet(wb,"Config").forEach(r=>{if(r.Key)cfg[String(r.Key).trim()]=r.Value});
+  const colours={};
+  sheet(wb,"Lists").forEach(r=>{
+    if(!blank(r.Status))colours[String(r.Status).trim().toLowerCase()]=String(r.Colour||"grey").toLowerCase();
+    if(!blank(r.Clearance))colours[String(r.Clearance).trim().toLowerCase()]=String(r.Colour_1||r["Colour_1"]||"grey").toLowerCase();
+  });
+  return {cfg,colours,rooms:sheet(wb,"Rooms"),types:sheet(wb,"Types"),fields:sheet(wb,"Fields")};
+}
+
+function chip(v,colours){
+  if(blank(v))return '<span class="empty">Not updated</span>';
+  let c=colours[String(v).trim().toLowerCase()];
+  if(!c){const s=String(v).trim().toUpperCase();
+    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^C\b|REVISE|PARTIAL/.test(s)?"amber":/^D\b|REJECT|PENDING/.test(s)?"red":/REVIEW|SUBMITTED/.test(s)?"blue":"grey";}
+  if(!["green","amber","red","blue","grey"].includes(c))c="grey";
+  return `<span class="chip c-${c}">${esc(v)}</span>`;
+}
+
+function render(D,id){
+  const {cfg,colours,rooms,types,fields}=D;
+  const room=rooms.find(r=>String(r["QR ID"]).trim().toUpperCase()===id.toUpperCase());
+  $("#proj").textContent=cfg["Project"]||"Qiddiya Water Park Hotel";
+  if(!room){$("#title").textContent=id;$("#app").innerHTML='<div class="card msg">This room ID is not in the register.</div>';return;}
+  const typ=types.find(t=>String(t["Room Type"]).trim()===String(room["Room Type"]).trim())||{};
+  // merge: room value wins over type value
+  const rec=Object.assign({},typ);Object.keys(room).forEach(k=>{if(!blank(room[k])||!(k in rec))rec[k]=room[k]});
+  // computed quantities
+  const tower=room.Tower, type=room["Room Type"];
+  const inTower=rooms.filter(r=>r.Tower===tower), sameT=inTower.filter(r=>r["Room Type"]===type), sameAll=rooms.filter(r=>r["Room Type"]===type);
+  const pct=(a,b)=>b?(a/b*100).toFixed(1)+"%":"–";
+  rec._TypeCountTower=`${sameT.length} of ${inTower.length}`; rec._TypePctTower=pct(sameT.length,inTower.length);
+  rec._TypeCountAll=`${sameAll.length} of ${rooms.length}`; rec._TypePctAll=pct(sameAll.length,rooms.length);
+
+  $("#title").textContent=room["QR ID"];
+  $("#sub").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")} · Room ${room["Room No"]}`;
+  $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(room["Room Category"]||typ["Room Category"]||"")}</span>`;
+  document.title=room["QR ID"]+" – WPH Room Status";
+
+  // build field list: Fields sheet + any unlisted columns
+  const F=fields.filter(f=>!blank(f.Column)).map(f=>({col:String(f.Column).trim(),label:String(f.Label||f.Column),section:String(f.Section||"Other information"),order:Number(f.Order)||999,show:String(f.Show||"Y").toUpperCase()!=="N",fmt:String(f.Format||"text").toLowerCase()}));
+  const listed=new Set(F.map(f=>f.col));
+  Object.keys(rec).forEach(k=>{if(!listed.has(k)&&!k.startsWith("__")&&k!=="Room Type"){F.push({col:k,label:k,section:"Other information",order:1000,show:true,fmt:/date/i.test(k)?"date":/status|clearance/i.test(k)?"status":"text"});}});
+  F.sort((a,b)=>a.order-b.order);
+  const sections=[];F.filter(f=>f.show).forEach(f=>{let s=sections.find(x=>x.name===f.section);if(!s)sections.push(s={name:f.section,items:[]});s.items.push(f)});
+
+  let html="";
+  for(const s of sections){
+    if(s.name==="Room type quantity"){
+      html+=`<section class="card"><h2>Room type ${esc(type)} – quantity</h2><div class="stats">
+        <div class="stat"><span>In ${esc(tower)}</span><b>${sameT.length}</b><span>of ${inTower.length} rooms</span></div>
+        <div class="stat"><span>Share of ${esc(tower)}</span><b>${pct(sameT.length,inTower.length)}</b><div class="bar"><i style="width:${inTower.length?sameT.length/inTower.length*100:0}%"></i></div></div>
+        <div class="stat"><span>Towers A &amp; B</span><b>${sameAll.length}</b><span>of ${rooms.length} rooms</span></div>
+        <div class="stat"><span>Share of all rooms</span><b>${pct(sameAll.length,rooms.length)}</b><div class="bar"><i style="width:${rooms.length?sameAll.length/rooms.length*100:0}%"></i></div></div>
+      </div></section>`;continue;}
+    let rows="";let st={};
+    for(const f of s.items){
+      const v=rec[f.col];let out;
+      if(f.fmt==="status"){out=chip(v,colours);if(!blank(v)){const c=colours[String(v).trim().toLowerCase()]||"x";st[c]=(st[c]||0)+1}else st.none=(st.none||0)+1;}
+      else if(f.fmt==="date")out=blank(v)?'<span class="empty">–</span>':esc(fmtDate(v));
+      else out=blank(v)?'<span class="empty">–</span>':esc(v instanceof Date?fmtDate(v):v);
+      rows+=`<div class="row"><div class="k">${esc(f.label)}</div><div class="v">${out}</div></div>`;
+    }
+    let sum="";
+    if(s.items.filter(f=>f.fmt==="status").length>2){
+      const n=s.items.filter(f=>f.fmt==="status").length;
+      sum=`<div class="summary">${st.green?`<span class="chip c-green">${st.green}/${n} approved</span>`:""}${st.amber?`<span class="chip c-amber">${st.amber} revise</span>`:""}${st.red?`<span class="chip c-red">${st.red} rejected</span>`:""}${st.blue?`<span class="chip c-blue">${st.blue} under review</span>`:""}${st.none?`<span class="chip c-grey">${st.none} not updated</span>`:""}</div>`;
+    }
+    html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+\.\s*/,""))}</h2>${sum}${rows}</section>`;
+  }
+  $("#app").innerHTML=html;
+  const upd=cfg["Data last updated"];
+  $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(cfg["Updated by"]||"")}<br>${esc(cfg["Footer note"]||"")}`;
+}
+
+function colourOf(v,colours){
+  if(blank(v))return "none";
+  let c=colours[String(v).trim().toLowerCase()];
+  if(!c){const s=String(v).trim().toUpperCase();
+    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^C\b|REVISE|PARTIAL/.test(s)?"amber":/^D\b|REJECT|PENDING/.test(s)?"red":/REVIEW|SUBMITTED/.test(s)?"blue":"grey";}
+  return ["green","amber","red","blue","grey"].includes(c)?c:"grey";
+}
+function merged(D,room){
+  const typ=D.types.find(t=>String(t["Room Type"]).trim()===String(room["Room Type"]).trim())||{};
+  const rec=Object.assign({},typ);Object.keys(room).forEach(k=>{if(!blank(room[k])||!(k in rec))rec[k]=room[k]});return rec;
+}
+function renderLevel(D,code){
+  code=code.toUpperCase();
+  const tw="Tower "+code[0], lvl=code.slice(1);
+  const rooms=D.rooms.filter(r=>r.Tower===tw&&String(r.Level).toUpperCase()===lvl);
+  $("#proj").textContent=D.cfg["Project"]||"Qiddiya Water Park Hotel";
+  $("#title").textContent=`${tw} · Level ${lvl.replace(/^L/,"")}`;
+  if(!rooms.length){$("#app").innerHTML='<div class="card msg">No rooms found for this level.</div>';return;}
+  const inTower=D.rooms.filter(r=>r.Tower===tw);
+  $("#sub").textContent=`Level summary · ${rooms.length} rooms (${(rooms.length/inTower.length*100).toFixed(1)}% of ${tw})`;
+  document.title=code+" – WPH Level Status";
+  const recs=rooms.map(r=>merged(D,r)), N=recs.length;
+  // status columns from Fields sheet
+  const F=D.fields.filter(f=>!blank(f.Column)&&String(f.Show||"Y").toUpperCase()!=="N"&&String(f.Format).toLowerCase()==="status").map(f=>({col:String(f.Column).trim(),label:(String(f.Label)==="Status"?"Interior Design (ID)":String(f.Label||f.Column)),section:String(f.Section||"Other").replace(/^\d+\.\s*/,"")}));
+  const cats={};rooms.forEach(r=>{cats[r["Room Category"]]=(cats[r["Room Category"]]||0)+1});
+  $("#tags").innerHTML=Object.entries(cats).map(([k,v])=>`<span class="tag">${esc(k)} ${v}</span>`).join("");
+  const count=col=>{const c={green:0,amber:0,red:0,blue:0,grey:0,none:0};recs.forEach(x=>c[colourOf(x[col],D.colours)]++);return c};
+  const bar=c=>`<div class="sbar">${["green","amber","red","blue","grey","none"].map(k=>c[k]?`<i class="b-${k}" style="flex:${c[k]}"></i>`:"").join("")}</div>`;
+  let html="";
+  // headline stats
+  const mep=count("MEP Clearance"), elv=count("ELV Clearance");
+  html+=`<section class="card"><h2>Level overview</h2><div class="stats">
+    <div class="stat"><span>Guest rooms</span><b>${N}</b><span>of ${inTower.length} in ${esc(tw)}</span></div>
+    <div class="stat"><span>Room types</span><b>${new Set(rooms.map(r=>r["Room Type"])).size}</b><span>typologies on this level</span></div>
+    <div class="stat"><span>MEP clearance provided</span><b>${mep.green} / ${N}</b><div class="bar"><i style="width:${mep.green/N*100}%"></i></div></div>
+    <div class="stat"><span>ELV clearance provided</span><b>${elv.green} / ${N}</b><div class="bar"><i style="width:${elv.green/N*100}%"></i></div></div>
+  </div></section>`;
+  // per-section status tables
+  const secs=[];F.forEach(f=>{let s=secs.find(x=>x.name===f.section);if(!s)secs.push(s={name:f.section,items:[]});s.items.push(f)});
+  for(const s of secs){
+    html+=`<section class="card"><h2>${esc(s.name)}</h2><div class="row thead"><div class="k">Item</div><div class="v">Approved / provided</div></div>`;
+    for(const f of s.items){const c=count(f.col);
+      html+=`<div class="row col"><div class="rowtop"><div class="k">${esc(f.label)}</div><div class="v">${c.green} / ${N} <span class="pct">${(c.green/N*100).toFixed(0)}%</span></div></div>${bar(c)}<div class="legend">${c.amber?`<span class="chip c-amber">${c.amber} revise</span>`:""}${c.red?`<span class="chip c-red">${c.red} rejected / pending</span>`:""}${c.blue?`<span class="chip c-blue">${c.blue} under review</span>`:""}${c.none+c.grey?`<span class="chip c-grey">${c.none+c.grey} not updated</span>`:""}</div></div>`;}
+    html+=`</section>`;
+  }
+  // room types on this level
+  const types={};rooms.forEach(r=>{types[r["Room Type"]]=(types[r["Room Type"]]||0)+1});
+  html+=`<section class="card"><h2>Room types on this level</h2>${Object.entries(types).sort().map(([t,n])=>`<div class="row"><div class="k">${esc(t)}</div><div class="v">${n} <span class="pct">${(n/N*100).toFixed(1)}%</span></div></div>`).join("")}</section>`;
+  // room list
+  const dot=v=>`<i class="dot d-${colourOf(v,D.colours)}"></i>`;
+  html+=`<section class="card list"><h2>Rooms · tap for details</h2><div class="row thead"><div class="k">Room</div><div class="v">ID SD · MEP · ELV</div></div>${recs.map(x=>`<a href="?room=${encodeURIComponent(x["QR ID"])}"><b>${esc(x["QR ID"])} <span>${esc(x["Room Type"])}</span></b><span>${dot(x["ID SD Status"])}${dot(x["MEP Clearance"])}${dot(x["ELV Clearance"])}</span></a>`).join("")}</section>`;
+  $("#app").innerHTML=html;
+  const upd=D.cfg["Data last updated"];
+  $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(D.cfg["Updated by"]||"")}<br>${esc(D.cfg["Footer note"]||"")}`;
+}
+
+function renderIndex(D){
+  $("#proj").textContent=D.cfg["Project"]||"Qiddiya Water Park Hotel";
+  $("#title").textContent="Room status register";
+  $("#sub").textContent=`${D.rooms.length} rooms · Towers A & B`;
+  $("#app").innerHTML=`<div class="card" style="padding:12px"><input type="search" id="q" placeholder="Search room no. or type, e.g. AL02G05 or K01C"></div><div class="card list" id="list"></div>`;
+  const draw=()=>{const q=$("#q").value.trim().toUpperCase();
+    const L=D.rooms.filter(r=>!q||String(r["QR ID"]).toUpperCase().includes(q)||String(r["Room Type"]).toUpperCase()===q).slice(0,200);
+    $("#list").innerHTML=L.map(r=>`<a href="?room=${encodeURIComponent(r["QR ID"])}"><b>${esc(r["QR ID"])}</b><span>${esc(r.Tower)} · ${esc(r.Level)} · ${esc(r["Room Type"])}</span></a>`).join("")||'<div class="msg">No match</div>';};
+  $("#q").addEventListener("input",draw);draw();
+}
+
+(async()=>{
+  const q=new URLSearchParams(location.search), id=q.get("room"), lv=q.get("level");
+  try{const D=await load(); id?render(D,id.trim()):lv?renderLevel(D,lv.trim()):renderIndex(D);}
+  catch(e){$("#app").innerHTML=`<div class="card msg">${esc(e.message)}<br>Check your connection and scan again.</div>`;}
+})();
+</script>
+</body>
+</html>
