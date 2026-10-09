@@ -217,7 +217,15 @@ function render(D,id){
       const n=s.items.filter(f=>f.fmt==="status"||f.fmt==="sd").length;
       sum=`<div class="summary">${st.green?`<span class="chip c-green">${st.green}/${n} approved</span>`:""}${st.lgreen?`<span class="chip c-lgreen">${st.lgreen} coordinated</span>`:""}${st.amber?`<span class="chip c-amber">${st.amber} UR</span>`:""}${st.red?`<span class="chip c-red">${st.red} C</span>`:""}${st.grey?`<span class="chip c-grey">${st.grey} TBS</span>`:""}${st.none?`<span class="chip c-plain">${st.none} not updated</span>`:""}</div>`;
     }
-    const lg=s.items.some(f=>isSD(f.col))?legend():"";
+    let lg="";
+    if(s.items.some(f=>isSD(f.col))){
+      const sdc=s.items.filter(f=>isSD(f.col)).map(f=>f.col),cnt={};let bl=0;
+      sdc.forEach(col=>{const v=rec[col];if(blank(v)){bl++;return;}const k=String(v).trim().toUpperCase();cnt[k]=(cnt[k]||0)+1;});
+      lg='<div class="tally">'+META.filter(m=>m.code!=="Coordinated").map(m=>`<div class="trow">${badge(m.code)||esc(m.code)}<span class="tl">${esc(m.meaning.replace(/^Code C - /,""))}</span><b>${cnt[m.code.toUpperCase()]||0}</b></div>`).join("")
+        +(bl?`<div class="trow"><span class="badge" style="background:var(--line);color:var(--muted)">–</span><span class="tl">Not updated</span><b>${bl}</b></div>`:"")
+        +`<div class="trow ttot"><span class="tl">Total drawings (ID + ${sdc.length-1} MEP/ELV disciplines)</span><b>${sdc.length}</b></div></div>`;
+      sum="";
+    }
     html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+[a-z]?\.\s*/i,""))}</h2>${lg}${sum}${rows}</section>`;
   }
   if(!flsDone)html+=flsCard(D,lvCode,room);
