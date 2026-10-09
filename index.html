@@ -136,6 +136,14 @@ function badge(v){const k=String(v).trim().toUpperCase(),h=codeHex(k);return h?`
 function effChip(e){if(e.k!=="none"){const b=badge(e.t);if(b)return b;}return e.k==="none"?'<span class="empty">Not updated</span>':`<span class="chip c-${e.k}">${esc(e.t)}</span>`;}
 const legend=()=>'<div class="legend" style="padding:8px 14px;border-bottom:1px solid var(--line);gap:8px 12px;align-items:center">'+META.filter(m=>m.code!=="Coordinated").map(m=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">${badge(m.code)||esc(m.code)}${esc(m.meaning.replace(/^Code C - /,""))}</span>`).join("")+'</div>';
 
+function flsCard(D,code,over){
+  const base=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
+  const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
+  const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
+  Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const [g,it]=k.split(" - ");const G=groups.find(x=>x[0]===g);if(G&&!G[1].includes(it))G[1].push(it)});
+  const cell=(g,it)=>{const v=row[g+" - "+it],d=row[g+" - "+it+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
+  return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>`<div class="row"><div class="k">${esc(it)}</div><div class="v">${cell(g,it)}</div></div>`).join("")).join("")+`</section>`;
+}
 function render(D,id){
   const {cfg,colours,rooms,types,fields}=D;
   const room=rooms.find(r=>String(r["QR ID"]).trim().toUpperCase()===id.toUpperCase());
@@ -161,13 +169,15 @@ function render(D,id){
   // build field list: Fields sheet + any unlisted columns
   const F=fields.filter(f=>!blank(f.Column)).map(f=>({col:String(f.Column).trim(),label:String(f.Label||f.Column),section:String(f.Section||"Other information"),order:Number(f.Order)||999,show:String(f.Show||"Y").toUpperCase()!=="N",fmt:String(f.Format||"text").toLowerCase()}));
   const listed=new Set(F.map(f=>f.col));
-  Object.keys(rec).forEach(k=>{if(!listed.has(k)&&!k.startsWith("__")&&k!=="Room Type"){F.push({col:k,label:k,section:"Other information",order:1000,show:true,fmt:/date/i.test(k)?"date":/status|clearance/i.test(k)?"status":"text"});}});
+  Object.keys(rec).forEach(k=>{if(!listed.has(k)&&!k.startsWith("__")&&k!=="Room Type"&&!/^(Civil|MEP) - /.test(k)){F.push({col:k,label:k,section:"Other information",order:1000,show:true,fmt:/date/i.test(k)?"date":/status|clearance/i.test(k)?"status":"text"});}});
   F.sort((a,b)=>a.order-b.order);
   const sections=[];F.filter(f=>f.show).forEach(f=>{let s=sections.find(x=>x.name===f.section);if(!s)sections.push(s={name:f.section,items:[]});s.items.push(f)});
 
   let html="";
+  const lvCode=String(tower).slice(-1)+String(room.Level).toUpperCase();let flsDone=false;
   for(const s of sections){
     if(/^room$/i.test(s.name.trim()))continue;
+    if(!flsDone&&/notes/i.test(s.name)){html+=flsCard(D,lvCode,room);flsDone=true;}
     if(s.name==="Room type quantity"){
       html+=`<section class="card"><h2>Room type ${esc(type)} – quantity</h2><div class="stats">
         <div class="stat"><span>In ${esc(tower)}</span><b>${sameT.length}</b><span>of ${inTower.length} rooms</span></div>
@@ -195,6 +205,7 @@ function render(D,id){
     const lg=s.items.some(f=>isSD(f.col))?legend():"";
     html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+[a-z]?\.\s*/i,""))}</h2>${lg}${sum}${rows}</section>`;
   }
+  if(!flsDone)html+=flsCard(D,lvCode,room);
   $("#app").innerHTML=html;
   const upd=cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(cfg["Updated by"]||"")}<br>${esc(cfg["Footer note"]||"")}`;
@@ -260,13 +271,7 @@ function renderLevel(D,code){
   // room list
   const dot=v=>`<i class="dot d-${colourOf(v,D.colours)}"></i>`;
   html+=`<section class="card list"><h2>Rooms · tap for details</h2><div class="row thead"><div class="k">Room</div><div class="v">ID SD · MEP · ELV</div></div>${recs.map(x=>`<a href="?room=${encodeURIComponent(x["QR ID"])}"><b>${esc(x["QR ID"])} <span>${esc(x["Room Type"])}</span></b><span>${dot(x["ID SD Status"])}${dot(x["MEP Clearance"])}${dot(x["ELV Clearance"])}</span></a>`).join("")}</section>`;
-  // FLS – Fire Life & Safety (per level, from FLS sheet)
-  {const row=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
-   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
-   const extra=Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)&&!groups.some(([g,its])=>its.some(it=>k===g+" - "+it)));
-   extra.forEach(k=>{const [g,it]=k.split(" - ");const G=groups.find(x=>x[0]===g);if(G)G[1].push(it)});
-   const cell=(g,it)=>{const v=row[g+" - "+it],d=row[g+" - "+it+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
-   html+=`<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>`<div class="row"><div class="k">${esc(it)}</div><div class="v">${cell(g,it)}</div></div>`).join("")).join("")+`</section>`;}
+  html+=flsCard(D,code,{});
   $("#app").innerHTML=html;
   const upd=D.cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(D.cfg["Updated by"]||"")}<br>${esc(D.cfg["Footer note"]||"")}`;
