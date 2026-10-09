@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WPH Building Explorer</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#14213d;--muted:#5b6475;--line:#e3e7ee;--brand:#1f3a5f;--brand2:#2c5282;--accent:#00a04a;
+  --grey-bg:#eef0f3;--shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;--grey-bg:#232d3d;--shadow:none}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;--grey-bg:#232d3d;--shadow:none}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden}
+header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 16px 20px}
+.hin{max-width:1100px;margin:0 auto}
+header .proj{font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase}
+header h1{margin:6px 0 2px;font-size:28px;letter-spacing:.01em}
+header .sub{font-size:15px;opacity:.95}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.crumbs a,.crumbs span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px 11px;font-size:13px;color:#fff;text-decoration:none}
+.crumbs a:hover{background:rgba(255,255,255,.28)}
+header .upd{font-size:12px;opacity:.85;margin-top:12px}header .upd:empty{display:none}
+main{max-width:1100px;margin:0 auto;padding:16px 12px 40px}
+.msg{padding:18px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+h2.sec{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#1a5fb4;margin:6px 4px 12px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) h2.sec{color:#8ab4f8}}
+
+/* towers */
+.towers{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tower{display:flex;flex-direction:column;align-items:center;padding:18px 12px 16px;cursor:pointer;text-align:center;transition:transform .15s,border-color .15s;color:inherit;text-decoration:none}
+.tower:hover,.tower:focus-visible{transform:translateY(-2px);border-color:var(--brand2);outline:none}
+.tower svg{width:100%;max-width:300px;height:auto}
+.tower .tn{font-size:22px;font-weight:700;margin-top:10px}
+.tower .tm{font-size:13.5px;color:var(--muted)}
+.hint{color:var(--muted);font-size:13.5px;text-align:center;margin:14px 0 0}
+
+/* levels */
+.lvwrap{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:18px;align-items:start}
+.levels{display:flex;flex-direction:column;gap:8px}
+.lv{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+.lv:hover,.lv:focus-visible{border-color:var(--brand2);transform:translateX(2px);outline:none}
+.lv .ic{width:64px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.lv .ic small{font-size:10px;opacity:.85;letter-spacing:.05em}
+.lv .ic b{font-size:19px}
+.lv .mid{min-width:0}
+.lv .t{font-weight:600}
+.lv .s{font-size:12.5px;color:var(--muted)}
+.bar{display:flex;height:7px;border-radius:99px;overflow:hidden;background:var(--grey-bg);margin-top:6px}
+.bar i{display:block;height:100%}
+.chev{color:var(--muted);font-size:20px}
+.side{padding:14px 16px}
+.side p{margin:6px 0;color:var(--muted);font-size:13.5px}
+
+/* plan */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:6px 10px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#fff}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--brand2)}
+.planbox{position:relative;overflow:auto;max-height:78vh;background:#fff;border-radius:14px;border:1px solid var(--line);touch-action:pan-x pan-y pinch-zoom}
+.plan{position:relative;margin:0 auto;transform-origin:0 0}
+.plan img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.plan svg{position:absolute;inset:0;width:100%;height:100%}
+.room{cursor:pointer}
+.room polygon{stroke:#1f3a5f;stroke-width:2;transition:fill-opacity .15s}
+.room:hover polygon,.room:focus polygon{stroke-width:5;stroke:#00a04a}
+.room:focus{outline:none}
+.room rect{stroke:#fff;stroke-width:4}
+.room text{font:700 34px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;fill:#fff;pointer-events:none}
+.room text.sm{font-size:22px;font-weight:500;opacity:.92}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 2px 0;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.zoom{display:inline-flex;gap:6px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,15,25,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(680px,100%);height:88vh;background:var(--bg);border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);transition:transform .25s;z-index:21;display:flex;flex-direction:column;overflow:hidden}
+.open .scrim{opacity:1;pointer-events:auto}.open .sheet{transform:translate(-50%,0)}
+.sbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.sbar b{font-size:15px}
+.sheet iframe{border:0;width:100%;flex:1;background:var(--bg)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 12px 26px}
+
+@media (max-width:760px){
+  .lvwrap{grid-template-columns:1fr}
+  .side{order:-1}
+  header h1{font-size:24px}
+  .towers{gap:10px}
+  .tower{padding:14px 8px}
+}
+</style>
+</head>
+<body>
+<header><div class="hin">
+  <div class="proj" id="proj">Qiddiya Water Park Hotel (WPH)</div>
+  <h1 id="title">Building explorer</h1>
+  <div class="sub" id="sub">Loading…</div>
+  <div class="crumbs" id="crumbs"></div>
+  <div class="upd" id="upd"></div>
+</div></header>
+<main id="app"><div class="card msg">Loading the register…</div></main>
+<footer>Technical Department - BUJV · Live status from the WPH Room QR Status Register. For information only – refer to the latest approved documents.</footer>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="stitle">
+  <div class="sbar"><b id="stitle">Room</b><span style="display:flex;gap:6px"><a class="btn" id="sfull" target="_blank" rel="noopener">Open full page ↗</a><button class="btn" id="sclose" aria-label="Close">✕ Close</button></span></div>
+  <iframe id="sframe" title="Room information"></iframe>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const DATA_URL="WPH_Room_Register.xlsx", PLAN_URL="plans.json";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const blank=v=>v===undefined||v===null||String(v).trim()==="";
+function sheet(wb,n){const ws=wb.Sheets[n];return ws?XLSX.utils.sheet_to_json(ws,{defval:"",raw:true}):[]}
+
+const TYPE_COL={"King":"#8b2323","King ADA":"#6d3b1f","Queen":"#2d7a4a","Queen ADA":"#7a5a2d","Family":"#b0186b","Family ADA":"#7f9a14","Suite":"#7b3fa0","Suite ADA":"#5b4b8a","Premium Suite":"#b8860b"};
+const CLR={green:"#00B050",amber:"#FFC000",red:"#FF0000",grey:"#BFBFBF"};
+const MODES=[["type","Room type"],["id","ID shop drawing"],["mep","MEP clearance"],["elv","ELV clearance"]];
+let D,P,mode="type",zoom=1;
+
+async function load(){
+  const [res,pr]=await Promise.all([fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"}),fetch(PLAN_URL)]);
+  if(!res.ok)throw new Error("Could not load the register ("+res.status+")");
+  if(!pr.ok)throw new Error("Could not load the floor plans ("+pr.status+")");
+  P=await pr.json();
+  const wb=XLSX.read(await res.arrayBuffer(),{type:"array",cellDates:true});
+  try{const lm=res.headers.get("Last-Modified");const d=lm?new Date(lm):null;
+    if(d&&!isNaN(d)){const q=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Riyadh",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d).map(x=>[x.type,x.value]));
+      $("#upd").textContent=`Last update: ${q.day}-${q.month}-${q.year} ${q.hour}:${q.minute} (KSA)`;}}catch(e){}
+  const cfg={};sheet(wb,"Config").forEach(r=>{if(r.Key)cfg[String(r.Key).trim()]=r.Value});
+  const st={},cl={};
+  sheet(wb,"Lists").forEach(r=>{
+    if(!blank(r.Status))st[String(r.Status).trim().toUpperCase()]={hex:String(r.Colour||"#BFBFBF").trim(),meaning:String(r.Meaning||""),cat:String(r["Counts as"]||"").trim().toLowerCase()};
+    if(!blank(r.Clearance))cl[String(r.Clearance).trim().toLowerCase()]=CLR[String(r.Colour_1||"grey").trim().toLowerCase()]||"#BFBFBF";
+  });
+  const types={};sheet(wb,"Shop Drawings").forEach(t=>{if(!blank(t["Room Type"]))types[String(t["Room Type"]).trim()]=t});
+  const rooms={};sheet(wb,"Clearances").forEach(r=>{if(!blank(r["QR ID"]))rooms[String(r["QR ID"]).trim().toUpperCase()]=r});
+  D={cfg,st,cl,types,rooms};
+}
+function info(id){
+  const r=D.rooms[id.toUpperCase()]||{}, type=String(r["Room Type"]||"").trim(), t=D.types[type]||{};
+  return {r,type,cat:String(r["Room Category"]||t["Room Category"]||"").trim(),idsd:blank(t["ID SD Status"])?"TBS":String(t["ID SD Status"]).trim(),
+          mep:String(r["MEP Clearance"]||"").trim(),elv:String(r["ELV Clearance"]||"").trim()};
+}
+function stHex(code){return (D.st[String(code).toUpperCase()]||{}).hex||"#BFBFBF"}
+function clHex(v){return blank(v)?"#BFBFBF":(D.cl[v.toLowerCase()]||"#BFBFBF")}
+function roomColour(id){const i=info(id);
+  if(mode==="id")return stHex(i.idsd);
+  if(mode==="mep")return clHex(i.mep);
+  if(mode==="elv")return clHex(i.elv);
+  return TYPE_COL[i.cat]||"#1f3a5f";}
+function levelsOf(t){return Object.keys(P).filter(k=>k[0]===t).sort().map(k=>k.slice(1))}
+function roomsOf(t,l){return (P[t+l]||{rooms:[]}).rooms}
+function statusBar(ids){
+  const c={};ids.forEach(id=>{const s=info(id).idsd.toUpperCase();const h=stHex(s);c[h]=(c[h]||0)+1});
+  const order=[stHex("A"),stHex("UR"),stHex("C"),stHex("TBS")];const keys=Object.keys(c).sort((a,b)=>(order.indexOf(a)+9)%9-(order.indexOf(b)+9)%9);
+  return `<div class="bar" aria-hidden="true">${keys.map(h=>`<i style="width:${c[h]/ids.length*100}%;background:${h}"></i>`).join("")}</div>`;
+}
+function approvedPct(ids){const n=ids.filter(id=>{const s=D.st[info(id).idsd.toUpperCase()];return s&&s.cat==="approved"}).length;return ids.length?Math.round(n/ids.length*100):0}
+
+function head(title,sub,crumbs){
+  $("#title").textContent=title;$("#sub").textContent=sub;
+  $("#crumbs").innerHTML=crumbs.map(([t,h])=>h?`<a href="${h}">${esc(t)}</a>`:`<span>${esc(t)}</span>`).join("");
+  document.title=title+" – WPH Building Explorer";
+}
+function towerSvg(t){
+  const L=levelsOf(t).slice().reverse(), w=t==="A"?220:170, fh=22, top=30, H=top+L.length*fh+18, x=(300-w)/2;
+  let s=`<svg viewBox="0 0 300 ${H}" role="img" aria-label="Tower ${t}">`;
+  s+=`<rect x="${x+w*0.3}" y="8" width="${w*0.4}" height="${top-8}" rx="3" fill="#2c5282" opacity=".55"/>`;
+  L.forEach((l,i)=>{const y=top+i*fh;s+=`<rect x="${x}" y="${y}" width="${w}" height="${fh-3}" rx="3" fill="${i%2?'#2c5282':'#1f3a5f'}"/>`;
+    for(let k=0;k<Math.floor(w/22);k++)s+=`<rect x="${x+8+k*22}" y="${y+5}" width="12" height="${fh-13}" rx="1.5" fill="#cfe0f5" opacity=".75"/>`;
+    s+=`<text x="${x+w+8}" y="${y+fh/2+2}" font-size="11" fill="currentColor" opacity=".6">${l}</text>`;});
+  const gy=top+L.length*fh;
+  s+=`<rect x="${x-14}" y="${gy}" width="${w+28}" height="14" rx="3" fill="#00a04a"/></svg>`;
+  return s;
+}
+function viewHome(){
+  head("Building explorer","Select a tower",[["Towers",""]]);
+  $("#app").innerHTML=`<h2 class="sec">Towers</h2><div class="towers">`+["A","B"].map(t=>{
+    const lv=levelsOf(t), ids=lv.flatMap(l=>roomsOf(t,l).map(r=>r.id));
+    return `<a class="card tower" href="#/${t}">${towerSvg(t)}<div class="tn">Tower ${t}</div><div class="tm">${lv.length} levels · ${ids.length} rooms</div><div class="tm">ID shop drawings approved: ${approvedPct(ids)}%</div></a>`}).join("")+
+    `</div><p class="hint">Tap a tower to see its levels, then a level to open its layout.</p>`;
+}
+function viewTower(t){
+  const lv=levelsOf(t);if(!lv.length)return viewHome();
+  const all=lv.flatMap(l=>roomsOf(t,l).map(r=>r.id));
+  head(`Tower ${t}`,`${lv.length} levels · ${all.length} rooms`,[["Towers","#/"],[`Tower ${t}`,""]]);
+  const leg=["A","UR","C","TBS"].map(c=>`<span><i style="background:${stHex(c)}"></i>${esc(c)} – ${esc((D.st[c]||{}).meaning||"")}</span>`).join("");
+  $("#app").innerHTML=`<div class="lvwrap"><div><h2 class="sec">Levels</h2><div class="levels">`+lv.slice().reverse().map(l=>{
+      const ids=roomsOf(t,l).map(r=>r.id);
+      return `<a class="card lv" href="#/${t}/${l}"><div class="ic"><small>LEVEL</small><b>${l.slice(1)}</b></div><div class="mid"><div class="t">Tower ${t} · Level ${l.slice(1)}</div><div class="s">${ids.length} rooms · ID SD approved ${approvedPct(ids)}%</div>${statusBar(ids)}</div><div class="chev">›</div></a>`}).join("")+
+    `</div></div><div class="card side"><h2 class="sec" style="margin:0 0 6px">Tower ${t}</h2>${towerSvg(t)}<p>The bar under each level shows the ID shop drawing status of its rooms.</p><div class="legend">${leg}</div></div></div>`;
+}
+function legendHtml(t,l){
+  if(mode==="type"){const c={};roomsOf(t,l).forEach(r=>{const i=info(r.id);const k=i.type||"?";c[k]=c[k]||{n:0,cat:i.cat};c[k].n++});
+    return Object.keys(c).sort().map(k=>`<span><i style="background:${TYPE_COL[c[k].cat]||'#1f3a5f'}"></i>${esc(k)} ×${c[k].n}</span>`).join("");}
+  if(mode==="id")return Object.keys(D.st).filter(k=>k!=="COORDINATED").map(k=>`<span><i style="background:${D.st[k].hex}"></i>${esc(k)} – ${esc(D.st[k].meaning)}</span>`).join("");
+  const seen=new Set();return Object.keys(D.cl).map(k=>{const h=D.cl[k];return `<span><i style="background:${h}"></i>${esc(k.replace(/\b\w/g,c=>c.toUpperCase()))}</span>`}).join("")+`<span><i style="background:#BFBFBF"></i>Not updated</span>`;
+}
+function viewLevel(t,l){
+  const p=P[t+l];if(!p)return viewTower(t);
+  head(`Tower ${t} · Level ${l.slice(1)}`,`${p.rooms.length} rooms · tap a room to see its information`,[["Towers","#/"],[`Tower ${t}`,`#/${t}`],[`Level ${l.slice(1)}`,""]]);
+  const lv=levelsOf(t),i=lv.indexOf(l);
+  $("#app").innerHTML=`<div class="tools"><div class="seg" role="group" aria-label="Colour rooms by">${MODES.map(([k,n])=>`<button data-m="${k}" aria-pressed="${k===mode}">${n}</button>`).join("")}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="zoom"><button class="btn" id="zo" aria-label="Zoom out">−</button><button class="btn" id="zi" aria-label="Zoom in">+</button></span>
+    ${i>0?`<a class="btn" href="#/${t}/${lv[i-1]}">▼ Level ${lv[i-1].slice(1)}</a>`:""}${i<lv.length-1?`<a class="btn" href="#/${t}/${lv[i+1]}">▲ Level ${lv[i+1].slice(1)}</a>`:""}
+    <a class="btn" href="index.html?level=${t}${l}" target="_blank" rel="noopener">Level summary ↗</a></div></div>
+    <div class="planbox" id="pb"><div class="plan" id="plan"><img src="${p.img}" alt="Tower ${t} level ${l.slice(1)} layout" width="${Math.round(p.w)}" height="${Math.round(p.h)}"><svg viewBox="0 0 ${p.w} ${p.h}" id="ov"></svg></div></div>
+    <div class="legend" id="leg"></div>`;
+  drawRooms(t,l);
+  document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));drawRooms(t,l)});
+  const fit=()=>{const pb=$("#pb"),pl=$("#plan");const base=Math.min(pb.clientWidth,(window.innerHeight*0.76)*p.w/p.h);pl.style.width=Math.round(base*zoom)+"px"};
+  zoom=1;fit();window.onresize=fit;
+  $("#zi").onclick=()=>{zoom=Math.min(4,zoom*1.4);fit()};$("#zo").onclick=()=>{zoom=Math.max(1,zoom/1.4);fit()};
+}
+function drawRooms(t,l){
+  const p=P[t+l],fillOp=mode==="type"?0.08:0.62;
+  $("#ov").innerHTML=p.rooms.map(r=>{const i=info(r.id),c=roomColour(r.id),lab=i.type||"?",w=Math.max(96,lab.length*22+28),[x,y]=r.lab;
+    const sub=mode==="id"?i.idsd:mode==="mep"?(i.mep||"–"):mode==="elv"?(i.elv||"–"):"";
+    const h=sub?74:50;
+    return `<g class="room" tabindex="0" role="button" aria-label="Room ${esc(r.id)}, type ${esc(lab)}" data-id="${esc(r.id)}">
+      <polygon points="${r.poly.map(q=>q.join(",")).join(" ")}" fill="${mode==='type'?'#1f3a5f':c}" fill-opacity="${fillOp}"/>
+      <rect x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="7" fill="${mode==='type'?c:'#1f3a5f'}"/>
+      <text x="${x}" y="${y+(sub?-4:12)}" text-anchor="middle">${esc(lab)}</text>${sub?`<text class="sm" x="${x}" y="${y+25}" text-anchor="middle">${esc(sub)}</text>`:""}</g>`}).join("");
+  $("#leg").innerHTML=legendHtml(t,l);
+  document.querySelectorAll(".room").forEach(g=>{const go=()=>openRoom(g.dataset.id);g.onclick=go;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
+}
+function openRoom(id){
+  const u="index.html?room="+encodeURIComponent(id);
+  $("#stitle").textContent=id;$("#sfull").href=u;$("#sframe").src=u;document.body.classList.add("open");
+}
+function closeRoom(){document.body.classList.remove("open");setTimeout(()=>{if(!document.body.classList.contains("open"))$("#sframe").src="about:blank"},300)}
+$("#sclose").onclick=closeRoom;$("#scrim").onclick=closeRoom;document.addEventListener("keydown",e=>{if(e.key==="Escape")closeRoom()});
+
+function route(){
+  closeRoom();window.onresize=null;
+  const [t,l]=location.hash.replace(/^#\/?/,"").split("/").filter(Boolean).map(s=>s.toUpperCase());
+  if(t&&l)viewLevel(t,l);else if(t)viewTower(t);else viewHome();
+  window.scrollTo(0,0);
+}
+(async()=>{
+  try{await load();D.cfg.Project&&($("#proj").textContent=D.cfg.Project);window.addEventListener("hashchange",route);route();}
+  catch(e){$("#app").innerHTML=`<div class="card msg">${esc(e.message)}</div>`;$("#sub").textContent="";}
+})();
+</script>
+</body>
+</html>

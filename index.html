@@ -312,7 +312,7 @@ function renderIndex(D){
   $("#proj").textContent=D.cfg["Project"]||"Qiddiya Water Park Hotel";
   $("#title").textContent="Room status register";
   $("#sub").textContent=`${D.rooms.length} rooms · Towers A & B`;
-  $("#app").innerHTML=`<div class="card" style="padding:12px"><input type="search" id="q" placeholder="Search room no. or type, e.g. AL02G05 or K01C"></div><div class="card list" id="list"></div>`;
+  $("#app").innerHTML=`<a class="card" href="explore.html" style="display:block;padding:14px 16px;font-weight:600;color:inherit;text-decoration:none">🏢 Building explorer – towers, levels and layouts ›</a><div class="card" style="padding:12px"><input type="search" id="q" placeholder="Search room no. or type, e.g. AL02G05 or K01C"></div><div class="card list" id="list"></div>`;
   const draw=()=>{const q=$("#q").value.trim().toUpperCase();
     const L=D.rooms.filter(r=>!q||String(r["QR ID"]).toUpperCase().includes(q)||String(r["Room Type"]).toUpperCase()===q).slice(0,200);
     $("#list").innerHTML=L.map(r=>`<a href="?room=${encodeURIComponent(r["QR ID"])}"><b>${esc(r["QR ID"])}</b><span>${esc(r.Tower)} · ${esc(r.Level)} · ${esc(r["Room Type"])}</span></a>`).join("")||'<div class="msg">No match</div>';};
