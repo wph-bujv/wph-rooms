@@ -127,7 +127,7 @@ const revCol=col=>col==="ID SD Status"?"ID SD Revision":col+" Rev";
 const sketchOn=rec=>/^\s*provided/i.test(String(rec[SKETCH]||""));
 // effective status: official approval (dark green) > coordination sketch (light green) > official status
 function eff(rec,col,colours){
-  const v=rec[col];
+  let v=rec[col]; if(isSD(col)&&blank(v))v="TBS";
   if(col===SKETCH){return blank(v)?{k:"none",t:""}:{k:sketchOn(rec)?"lgreen":"plain",t:String(v)};}
   const c=colourOf(v,colours);
   return {k:c,t:blank(v)?"":String(v)};
@@ -155,7 +155,7 @@ function flsCard(D,code,over){
   const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
   Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const p=k.split(" - ");const g=p[0],it=p[1];const G=groups.find(x=>x[0]===g);if(G&&it&&!G[1].includes(it))G[1].push(it)});
-  const st=(key)=>{const v=row[key],d=row[key+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
+  const st=(key)=>{const v=blank(row[key])?"TBS":row[key],d=row[key+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
   const item=(g,it)=>`<div class="row fls"><div class="k fi">${esc(it)}</div><div class="fsub">`+[["Material","Material"],["Shop Drawing","Shop drawing"]].map(([k,l])=>`<div class="fline"><span class="fl">${l}</span><span class="fv">${st(g+" - "+it+" - "+k)}</span></div>`).join("")+`</div></div>`;
   return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>item(g,it)).join("")).join("")+`</section>`;
 }
@@ -220,7 +220,7 @@ function render(D,id){
     let lg="";
     if(s.items.some(f=>isSD(f.col))){
       const sdc=s.items.filter(f=>isSD(f.col)).map(f=>f.col),cnt={};let bl=0;
-      sdc.forEach(col=>{const v=rec[col];if(blank(v)){bl++;return;}const k=String(v).trim().toUpperCase();cnt[k]=(cnt[k]||0)+1;});
+      sdc.forEach(col=>{const v=blank(rec[col])?"TBS":rec[col];const k=String(v).trim().toUpperCase();cnt[k]=(cnt[k]||0)+1;});
       lg='<div class="tally">'+META.filter(m=>m.code!=="Coordinated").map(m=>`<div class="trow">${badge(m.code)||esc(m.code)}<span class="tl">${esc(m.meaning.replace(/^Code C - /,""))}</span><b>${cnt[m.code.toUpperCase()]||0}</b></div>`).join("")
         +(bl?`<div class="trow"><span class="badge" style="background:var(--line);color:var(--muted)">–</span><span class="tl">Not updated</span><b>${bl}</b></div>`:"")
         +`<div class="trow ttot"><span class="tl">Total drawings (ID + ${sdc.length-1} MEP/ELV disciplines)</span><b>${sdc.length}</b></div></div>`;
@@ -277,7 +277,7 @@ function renderLevel(D,code){
     let tally="";
     if(s.items.some(f=>isSD(f.col))){
       const sdc=s.items.filter(f=>isSD(f.col)).map(f=>f.col), cnt={}; let blankN=0, tot=0;
-      recs.forEach(x=>sdc.forEach(col=>{tot++;const v=x[col];if(blank(v)){blankN++;return;}const k=String(v).trim().toUpperCase();cnt[k]=(cnt[k]||0)+1;}));
+      recs.forEach(x=>sdc.forEach(col=>{tot++;const v=blank(x[col])?"TBS":x[col];const k=String(v).trim().toUpperCase();cnt[k]=(cnt[k]||0)+1;}));
       const codes=META.filter(m=>m.code!=="Coordinated");
       tally='<div class="tally">'+codes.map(m=>`<div class="trow">${badge(m.code)||esc(m.code)}<span class="tl">${esc(m.meaning.replace(/^Code C - /,""))}</span><b>${cnt[m.code.toUpperCase()]||0}</b></div>`).join("")
         +(blankN?`<div class="trow"><span class="badge" style="background:var(--line);color:var(--muted)">–</span><span class="tl">Not updated</span><b>${blankN}</b></div>`:"")
