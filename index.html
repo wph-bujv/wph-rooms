@@ -23,11 +23,12 @@ header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;
 header .proj{font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase}
 header h1{margin:6px 0 2px;font-size:30px;letter-spacing:.02em}
 header .sub{font-size:15px;opacity:.95}
+header .loc{font-size:15px;font-weight:600;margin-top:4px;opacity:.95}header .loc:empty{display:none}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px 10px;font-size:13px}
 main{max-width:640px;margin:-12px auto 0;padding:0 12px 28px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
-.card h2{margin:0;padding:12px 14px;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+.card h2{margin:0;padding:12px 14px;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));border-bottom:0}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--line)}
 .row:first-of-type{border-top:0}
 .k{color:var(--muted);flex:1 1 auto;min-width:0}
@@ -66,7 +67,7 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 </style>
 </head>
 <body>
-<header id="hdr"><div class="proj" id="proj">Qiddiya Water Park Hotel</div><h1 id="title">Room status</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div></header>
+<header id="hdr"><div class="proj" id="proj">Qiddiya Water Park Hotel</div><div class="loc" id="loc"></div><h1 id="title">Room status</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div></header>
 <main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
 <footer id="foot"></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -150,8 +151,10 @@ function render(D,id){
   rec._TypeCountAll=`${sameAll.length} of ${rooms.length}`; rec._TypePctAll=pct(sameAll.length,rooms.length);
 
   $("#title").textContent=room["QR ID"];
-  $("#sub").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")} · Room tag ${room["Room Tag"]||""}`;
-  $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(room["Room Category"]||typ["Room Category"]||"")}</span>`;
+  $("#loc").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")}`;
+  const cat=String(room["Room Category"]||typ["Room Category"]||"");
+  $("#sub").textContent=/^(King|Queen)$/i.test(cat.trim())?"Standard room":"Non-standard room";
+  $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(cat)}</span>${blank(room["Room Tag"])?"":`<span class="tag">Room tag ${esc(room["Room Tag"])}</span>`}`;
   document.title=room["QR ID"]+" – WPH Room Status";
 
   // build field list: Fields sheet + any unlisted columns
@@ -163,6 +166,7 @@ function render(D,id){
 
   let html="";
   for(const s of sections){
+    if(/^room$/i.test(s.name.trim()))continue;
     if(s.name==="Room type quantity"){
       html+=`<section class="card"><h2>Room type ${esc(type)} – quantity</h2><div class="stats">
         <div class="stat"><span>In ${esc(tower)}</span><b>${sameT.length}</b><span>of ${inTower.length} rooms</span></div>
@@ -171,11 +175,13 @@ function render(D,id){
         <div class="stat"><span>Share of all rooms</span><b>${pct(sameAll.length,rooms.length)}</b><div class="bar"><i style="width:${rooms.length?sameAll.length/rooms.length*100:0}%"></i></div></div>
       </div></section>`;continue;}
     let rows="";let st={};
+    const names=new Set(s.items.map(x=>x.col));
     for(const f of s.items){
+      if(f.fmt==="date"&&names.has(f.col.replace(/ Date$/,""))&&/ Date$/.test(f.col))continue;
       const v=rec[f.col];let out;
       if(f.fmt==="sketch"){const dt=rec[SKETCH+" Date"];out=sketchOn(rec)?`<span class="sk-yes">Provided</span>${blank(dt)?"":`<span class="rev" style="margin:0 0 0 8px">${esc(fmtDate(dt))}</span>`}`:`<span class="sk-no">Not Provided</span>`;}
       else if(f.fmt==="sd"){const e=eff(rec,f.col,colours),rv=rec[revCol(f.col)];out=`<span class="rev">${blank(rv)?"Rev –":"Rev "+esc(rv instanceof Date?fmtDate(rv):rv)}</span>${effChip(e)}`;st[e.k]=(st[e.k]||0)+1;}
-      else if(f.fmt==="status"){const e=eff(rec,f.col,colours);out=effChip(e);st[e.k]=(st[e.k]||0)+1;}
+      else if(f.fmt==="status"){const e=eff(rec,f.col,colours);out=effChip(e);st[e.k]=(st[e.k]||0)+1;const dv=rec[f.col+" Date"];if(names.has(f.col+" Date")&&!blank(dv))out+=`<span class="rev" style="margin:0 0 0 8px">${esc(fmtDate(dv))}</span>`;}
       else if(f.fmt==="date")out=blank(v)?'<span class="empty">–</span>':esc(fmtDate(v));
       else out=blank(v)?'<span class="empty">–</span>':esc(v instanceof Date?fmtDate(v):v);
       rows+=`<div class="row"><div class="k">${esc(f.label)}</div><div class="v">${out}</div></div>`;
