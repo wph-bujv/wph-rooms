@@ -150,14 +150,18 @@ function collapsible(){
     h.addEventListener("click",t); h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();t();}});
   });
 }
-function flsCard(D,code,over){
+// Level-only FLS items (not shown on room pages)
+const ROOM_FLS_SKIP=["Civil - Steel Doors"];
+function flsCard(D,code,over,skip){
+  skip=skip||[];
   const base=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
   const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
   Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const p=k.split(" - ");const g=p[0],it=p[1];const G=groups.find(x=>x[0]===g);if(G&&it&&!G[1].includes(it))G[1].push(it)});
   const st=(key)=>{const v=blank(row[key])?"TBS":row[key],d=row[key+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
   const item=(g,it)=>`<div class="row fls"><div class="k fi">${esc(it)}</div><div class="fsub">`+[["Material","Material"],["Shop Drawing","Shop drawing"]].map(([k,l])=>`<div class="fline"><span class="fl">${l}</span><span class="fv">${st(g+" - "+it+" - "+k)}</span></div>`).join("")+`</div></div>`;
-  return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>item(g,it)).join("")).join("")+`</section>`;
+  groups.forEach(G=>{G[1]=G[1].filter(it=>!skip.includes(G[0]+" - "+it))});
+  return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.filter(G=>G[1].length).map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>item(g,it)).join("")).join("")+`</section>`;
 }
 function render(D,id){
   const {cfg,colours,rooms,types,fields}=D;
@@ -192,7 +196,7 @@ function render(D,id){
   const lvCode=String(tower).slice(-1)+String(room.Level).toUpperCase();let flsDone=false;
   for(const s of sections){
     if(/^room$/i.test(s.name.trim()))continue;
-    if(!flsDone&&/notes/i.test(s.name)){html+=flsCard(D,lvCode,room);flsDone=true;}
+    if(!flsDone&&/notes/i.test(s.name)){html+=flsCard(D,lvCode,room,ROOM_FLS_SKIP);flsDone=true;}
     if(s.name==="Room type quantity"){
       html+=`<section class="card"><h2>Room type ${esc(type)} – quantity</h2><div class="stats">
         <div class="stat"><span>In ${esc(tower)}</span><b>${sameT.length}</b><span>of ${inTower.length} rooms</span></div>
@@ -228,7 +232,7 @@ function render(D,id){
     }
     html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+[a-z]?\.\s*/i,""))}</h2>${lg}${sum}${rows}</section>`;
   }
-  if(!flsDone)html+=flsCard(D,lvCode,room);
+  if(!flsDone)html+=flsCard(D,lvCode,room,ROOM_FLS_SKIP);
   $("#app").innerHTML=html;collapsible();
   const upd=cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(cfg["Updated by"]||"")}<br>${esc(cfg["Footer note"]||"")}`;
