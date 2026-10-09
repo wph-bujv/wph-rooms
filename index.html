@@ -154,7 +154,7 @@ function render(D,id){
   $("#loc").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")}`;
   const cat=String(room["Room Category"]||typ["Room Category"]||"");
   $("#sub").textContent=/^(King|Queen)$/i.test(cat.trim())?"Standard room":"Non-standard room";
-  $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(cat)}</span>${blank(room["Room Tag"])?"":`<span class="tag">Room tag ${esc(room["Room Tag"])}</span>`}`;
+  $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(cat)}</span>${(()=>{const t=room["Design Room Tag"]??room["Room Tag"];return blank(t)?"":`<span class="tag">Design room tag ${esc(t)}</span>`})()}`;
   document.title=room["QR ID"]+" – WPH Room Status";
 
   // build field list: Fields sheet + any unlisted columns
