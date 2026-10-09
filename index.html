@@ -107,7 +107,7 @@ async function load(){
     if(!blank(r.Clearance))colours[String(r.Clearance).trim().toLowerCase()]=String(r.Colour_1||r["Colour_1"]||"grey").toLowerCase();
   });
   const pick=(...n)=>{for(const x of n){if(wb.Sheets[x])return sheet(wb,x)}return []};
-  return {cfg,colours,rooms:pick("Clearances","Rooms"),types:pick("Shop Drawings","Types"),fields:sheet(wb,"Fields")};
+  return {cfg,colours,rooms:pick("Clearances","Rooms"),types:pick("Shop Drawings","Types"),fields:sheet(wb,"Fields"),fls:sheet(wb,"FLS")};
 }
 
 function chip(v,colours){
@@ -260,6 +260,13 @@ function renderLevel(D,code){
   // room list
   const dot=v=>`<i class="dot d-${colourOf(v,D.colours)}"></i>`;
   html+=`<section class="card list"><h2>Rooms · tap for details</h2><div class="row thead"><div class="k">Room</div><div class="v">ID SD · MEP · ELV</div></div>${recs.map(x=>`<a href="?room=${encodeURIComponent(x["QR ID"])}"><b>${esc(x["QR ID"])} <span>${esc(x["Room Type"])}</span></b><span>${dot(x["ID SD Status"])}${dot(x["MEP Clearance"])}${dot(x["ELV Clearance"])}</span></a>`).join("")}</section>`;
+  // FLS – Fire Life & Safety (per level, from FLS sheet)
+  {const row=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
+   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
+   const extra=Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)&&!groups.some(([g,its])=>its.some(it=>k===g+" - "+it)));
+   extra.forEach(k=>{const [g,it]=k.split(" - ");const G=groups.find(x=>x[0]===g);if(G)G[1].push(it)});
+   const cell=(g,it)=>{const v=row[g+" - "+it],d=row[g+" - "+it+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
+   html+=`<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>`<div class="row"><div class="k">${esc(it)}</div><div class="v">${cell(g,it)}</div></div>`).join("")).join("")+`</section>`;}
   $("#app").innerHTML=html;
   const upd=D.cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(D.cfg["Updated by"]||"")}<br>${esc(D.cfg["Footer note"]||"")}`;
