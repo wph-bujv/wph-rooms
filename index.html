@@ -24,6 +24,7 @@ header .proj{font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppe
 header h1{margin:6px 0 2px;font-size:30px;letter-spacing:.02em}
 header .sub{font-size:15px;opacity:.95}
 header .loc{font-size:15px;font-weight:600;margin-top:4px;opacity:.95}header .loc:empty{display:none}
+header .upd{font-size:12px;opacity:.85;margin-top:12px}header .upd:empty{display:none}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px 10px;font-size:13px}
 main{max-width:640px;margin:-12px auto 0;padding:0 12px 28px}
@@ -70,7 +71,7 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 </style>
 </head>
 <body>
-<header id="hdr"><div class="proj" id="proj">Qiddiya Water Park Hotel</div><div class="loc" id="loc"></div><h1 id="title">Room status</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div></header>
+<header id="hdr"><div class="proj" id="proj">Qiddiya Water Park Hotel</div><div class="loc" id="loc"></div><h1 id="title">Room status</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div></header>
 <main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
 <footer id="foot"></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -98,6 +99,9 @@ async function load(){
   if(!res.ok)throw new Error("Could not load the register ("+res.status+")");
   const buf=await res.arrayBuffer();
   const wb=XLSX.read(buf,{type:"array",cellDates:true});
+  try{const lm=res.headers.get("Last-Modified");const d=lm?new Date(lm):(wb.Props&&wb.Props.ModifiedDate?new Date(wb.Props.ModifiedDate):null);
+    if(d&&!isNaN(d)){const P=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Riyadh",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d).map(x=>[x.type,x.value]));
+      document.getElementById("upd").textContent=`Last update: ${P.day}-${P.month}-${P.year} ${P.hour}:${P.minute} (KSA)`;}}catch(e){}
   const cfg={};sheet(wb,"Config").forEach(r=>{if(r.Key)cfg[String(r.Key).trim()]=r.Value});
   const colours={};
   sheet(wb,"Lists").forEach(r=>{
