@@ -124,7 +124,7 @@ function render(D,id){
   rec._TypeCountAll=`${sameAll.length} of ${rooms.length}`; rec._TypePctAll=pct(sameAll.length,rooms.length);
 
   $("#title").textContent=room["QR ID"];
-  $("#sub").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")} · Room ${room["Room No"]}`;
+  $("#sub").textContent=`${tower} · Level ${String(room.Level).replace(/^L/,"")} · DSA tag ${room["DSA Room Tag"]||""}`;
   $("#tags").innerHTML=`<span class="tag">Type ${esc(type)}</span><span class="tag">${esc(room["Room Category"]||typ["Room Category"]||"")}</span>`;
   document.title=room["QR ID"]+" – WPH Room Status";
 
