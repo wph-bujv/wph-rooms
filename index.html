@@ -65,6 +65,7 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 .badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 8px;border-radius:15px;color:#fff;font-weight:800;font-size:13px;letter-spacing:.02em;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .sk-yes{color:#00873A;font-weight:800}.sk-no{color:#E00000;font-weight:800}
 .tally{padding:6px 14px 8px;border-bottom:1px solid var(--line)}.trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}.trow:last-child{border-bottom:0}.trow .tl{flex:1;color:var(--ink)}.trow b{font-size:18px;min-width:40px;text-align:right}.ttot .tl{color:var(--muted);font-size:13px}
+.row.fls{display:block}.fi{font-weight:600;color:var(--ink);margin-bottom:4px}.fline{display:flex;justify-content:space-between;align-items:center;padding:3px 0 3px 12px}.fl{color:var(--muted);font-size:13.5px}.fv{display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -140,9 +141,10 @@ function flsCard(D,code,over){
   const base=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
   const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
-  Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const [g,it]=k.split(" - ");const G=groups.find(x=>x[0]===g);if(G&&!G[1].includes(it))G[1].push(it)});
-  const cell=(g,it)=>{const v=row[g+" - "+it],d=row[g+" - "+it+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
-  return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>`<div class="row"><div class="k">${esc(it)}</div><div class="v">${cell(g,it)}</div></div>`).join("")).join("")+`</section>`;
+  Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const p=k.split(" - ");const g=p[0],it=p[1];const G=groups.find(x=>x[0]===g);if(G&&it&&!G[1].includes(it))G[1].push(it)});
+  const st=(key)=>{const v=row[key],d=row[key+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
+  const item=(g,it)=>`<div class="row fls"><div class="k fi">${esc(it)}</div><div class="fsub">`+[["Material","Material"],["Shop Drawing","Shop drawing"]].map(([k,l])=>`<div class="fline"><span class="fl">${l}</span><span class="fv">${st(g+" - "+it+" - "+k)}</span></div>`).join("")+`</div></div>`;
+  return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>item(g,it)).join("")).join("")+`</section>`;
 }
 function render(D,id){
   const {cfg,colours,rooms,types,fields}=D;
