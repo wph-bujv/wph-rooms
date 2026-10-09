@@ -96,7 +96,8 @@ async function load(){
     if(!blank(r.Status))colours[String(r.Status).trim().toLowerCase()]=String(r.Colour||"grey").toLowerCase();
     if(!blank(r.Clearance))colours[String(r.Clearance).trim().toLowerCase()]=String(r.Colour_1||r["Colour_1"]||"grey").toLowerCase();
   });
-  return {cfg,colours,rooms:sheet(wb,"Rooms"),types:sheet(wb,"Types"),fields:sheet(wb,"Fields")};
+  const pick=(...n)=>{for(const x of n){if(wb.Sheets[x])return sheet(wb,x)}return []};
+  return {cfg,colours,rooms:pick("Clearances","Rooms"),types:pick("Shop Drawings","Types"),fields:sheet(wb,"Fields")};
 }
 
 function chip(v,colours){
