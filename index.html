@@ -33,8 +33,8 @@ main{max-width:640px;margin:-12px auto 0;padding:0 12px 28px}
 .k{color:var(--muted);flex:1 1 auto;min-width:0}
 .v{font-weight:600;text-align:right;flex:0 1 auto;max-width:62%;overflow-wrap:anywhere}
 .chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;white-space:nowrap}
-.c-green{color:#fff;background:var(--dgreen)}.c-lgreen{color:var(--dgreen-t);background:var(--lgreen)}.c-amber{color:var(--amber);background:var(--amber-bg)}
-.c-red{color:var(--red);background:var(--red-bg)}.c-blue{color:var(--blue);background:var(--blue-bg)}.c-grey{color:var(--grey);background:var(--grey-bg)}
+.c-green{color:var(--t-approved,#fff);background:var(--k-approved,#00B050)}.c-lgreen{color:var(--t-coordinated,#123d1d);background:var(--k-coordinated,#B6E3A3)}.c-amber{color:var(--t-review,#000);background:var(--k-review,#FFC000)}
+.c-red{color:var(--t-revise,#fff);background:var(--k-revise,#FF0000)}.c-blue{color:var(--blue);background:var(--blue-bg)}.c-grey{color:var(--t-pending,#000);background:var(--k-pending,#BFBFBF)}.c-plain{color:var(--grey);background:var(--grey-bg)}
 .empty{color:var(--muted);font-weight:400;font-style:italic}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
 .stat{background:var(--card);padding:12px 14px}
@@ -51,14 +51,14 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand2);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 10px}
 @keyframes s{to{transform:rotate(360deg)}}
 .sbar{display:flex;height:8px;border-radius:5px;overflow:hidden;background:var(--grey-bg);margin:6px 0 2px}
-.sbar i{display:block}.b-green{background:var(--dgreen)}.b-lgreen{background:#8fdca4}.b-amber{background:var(--amber)}.b-red{background:var(--red)}.b-blue{background:var(--blue)}.b-grey,.b-none{background:var(--line)}
+.sbar i{display:block}.b-green{background:var(--k-approved,#00B050)}.b-lgreen{background:var(--k-coordinated,#B6E3A3)}.b-amber{background:var(--k-review,#FFC000)}.b-red{background:var(--k-revise,#FF0000)}.b-grey{background:var(--k-pending,#BFBFBF)}.b-blue{background:var(--blue)}.b-none{background:var(--line)}
 .row.col{display:block}.rowtop{display:flex;justify-content:space-between;gap:12px}
 .legend{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.legend .chip{font-size:11.5px;padding:1px 8px}
 .pct{color:var(--muted);font-weight:500;font-size:13px;margin-left:4px}
 .thead{background:var(--grey-bg);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding-top:6px;padding-bottom:6px}
 .thead .k,.thead .v{color:var(--muted);font-weight:600}
 .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--line)}
-.d-green{background:var(--dgreen)}.d-lgreen{background:#8fdca4}.d-amber{background:var(--amber)}.d-red{background:var(--red)}.d-blue{background:var(--blue)}
+.d-green{background:var(--k-approved,#00B050)}.d-lgreen{background:var(--k-coordinated,#B6E3A3)}.d-amber{background:var(--k-review,#FFC000)}.d-red{background:var(--k-revise,#FF0000)}.d-grey{background:var(--k-pending,#BFBFBF)}.d-blue{background:var(--blue)}
 .list a b span{color:var(--muted);font-weight:500;margin-left:6px}
 </style>
 </head>
@@ -85,6 +85,7 @@ function fmtDate(v){
 const blank=v=>v===null||v===undefined||String(v).trim()==="";
 function sheet(wb,name){const ws=wb.Sheets[name];return ws?XLSX.utils.sheet_to_json(ws,{defval:"",raw:true}):[]}
 
+const META=[],SETV={};
 async function load(){
   const res=await fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"});
   if(!res.ok)throw new Error("Could not load the register ("+res.status+")");
@@ -93,7 +94,11 @@ async function load(){
   const cfg={};sheet(wb,"Config").forEach(r=>{if(r.Key)cfg[String(r.Key).trim()]=r.Value});
   const colours={};
   sheet(wb,"Lists").forEach(r=>{
-    if(!blank(r.Status))colours[String(r.Status).trim().toLowerCase()]=String(r.Colour||"grey").toLowerCase();
+    if(!blank(r.Status)){const k=String(r.Status).trim(), cat=String(r["Counts as"]||"").trim().toLowerCase(), hex=String(r.Colour||"").trim();
+      const key={approved:"green",coordinated:"lgreen",review:"amber",revise:"red",pending:"grey"}[cat]||(/^#/.test(hex)?"grey":hex.toLowerCase()||"grey");
+      colours[k.toLowerCase()]=key; META.push({code:k,meaning:String(r.Meaning||""),key,hex});
+      if(/^#[0-9a-f]{6}$/i.test(hex)&&cat&&!SETV[cat]){SETV[cat]=1;const h=hex.slice(1),L=(0.299*parseInt(h.slice(0,2),16)+0.587*parseInt(h.slice(2,4),16)+0.114*parseInt(h.slice(4,6),16))/255;
+        document.documentElement.style.setProperty("--k-"+cat,hex);document.documentElement.style.setProperty("--t-"+cat,L>0.6?"#111":"#fff");}}
     if(!blank(r.Clearance))colours[String(r.Clearance).trim().toLowerCase()]=String(r.Colour_1||r["Colour_1"]||"grey").toLowerCase();
   });
   const pick=(...n)=>{for(const x of n){if(wb.Sheets[x])return sheet(wb,x)}return []};
@@ -104,8 +109,8 @@ function chip(v,colours){
   if(blank(v))return '<span class="empty">Not updated</span>';
   let c=colours[String(v).trim().toLowerCase()];
   if(!c){const s=String(v).trim().toUpperCase();
-    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^C\b|REVISE|PARTIAL/.test(s)?"amber":/^D\b|REJECT|PENDING/.test(s)?"red":/REVIEW|SUBMITTED/.test(s)?"blue":"grey";}
-  if(!["green","amber","red","blue","grey"].includes(c))c="grey";
+    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^UR$|REVIEW|PARTIAL/.test(s)?"amber":/^C\b|^D\b|REJECT|PENDING|REVISE/.test(s)?"red":"grey";}
+  if(!["green","lgreen","amber","red","blue","grey"].includes(c))c="grey";
   return `<span class="chip c-${c}">${esc(v)}</span>`;
 }
 
@@ -115,13 +120,13 @@ const sketchOn=rec=>/^\s*provided/i.test(String(rec[SKETCH]||""));
 // effective status: official approval (dark green) > coordination sketch (light green) > official status
 function eff(rec,col,colours){
   const v=rec[col];
-  if(col===SKETCH){return blank(v)?{k:"none",t:""}:{k:sketchOn(rec)?"lgreen":"grey",t:String(v)};}
+  if(col===SKETCH){return blank(v)?{k:"none",t:""}:{k:sketchOn(rec)?"lgreen":"plain",t:String(v)};}
   const c=colourOf(v,colours);
-  if(isSD(col)&&c!=="green"&&sketchOn(rec))return {k:"lgreen",t:"Sketch provided"+(blank(v)?"":" · SD: "+v)};
+  if(isSD(col)&&c!=="green"&&sketchOn(rec))return {k:"lgreen",t:"Coordinated"};
   return {k:c,t:blank(v)?"":String(v)};
 }
 function effChip(e){return e.k==="none"?'<span class="empty">Not updated</span>':`<span class="chip c-${e.k}">${esc(e.t)}</span>`;}
-const LEGEND='<div class="legend" style="padding:8px 14px;border-bottom:1px solid var(--line)"><span class="chip c-green">Approved (official SD)</span><span class="chip c-lgreen">Coordination sketch provided</span></div>';
+const legend=()=>'<div class="legend" style="padding:8px 14px;border-bottom:1px solid var(--line)">'+META.map(m=>`<span class="chip c-${m.key}" title="${esc(m.meaning)}">${esc(m.code)}${m.code==="Coordinated"?"":" = "+esc(m.meaning.replace(/^Code C - /,""))}</span>`).join("")+'</div>';
 
 function render(D,id){
   const {cfg,colours,rooms,types,fields}=D;
@@ -170,9 +175,9 @@ function render(D,id){
     let sum="";
     if(s.items.filter(f=>f.fmt==="status").length>2){
       const n=s.items.filter(f=>f.fmt==="status").length;
-      sum=`<div class="summary">${st.green?`<span class="chip c-green">${st.green}/${n} approved</span>`:""}${st.lgreen?`<span class="chip c-lgreen">${st.lgreen} by sketch</span>`:""}${st.amber?`<span class="chip c-amber">${st.amber} revise</span>`:""}${st.red?`<span class="chip c-red">${st.red} rejected</span>`:""}${st.blue?`<span class="chip c-blue">${st.blue} under review</span>`:""}${st.none?`<span class="chip c-grey">${st.none} not updated</span>`:""}</div>`;
+      sum=`<div class="summary">${st.green?`<span class="chip c-green">${st.green}/${n} approved</span>`:""}${st.lgreen?`<span class="chip c-lgreen">${st.lgreen} coordinated</span>`:""}${st.amber?`<span class="chip c-amber">${st.amber} UR</span>`:""}${st.red?`<span class="chip c-red">${st.red} C</span>`:""}${st.grey?`<span class="chip c-grey">${st.grey} TBS</span>`:""}${st.none?`<span class="chip c-plain">${st.none} not updated</span>`:""}</div>`;
     }
-    const lg=s.items.some(f=>isSD(f.col))?LEGEND:"";
+    const lg=s.items.some(f=>isSD(f.col))?legend():"";
     html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+[a-z]?\.\s*/i,""))}</h2>${lg}${sum}${rows}</section>`;
   }
   $("#app").innerHTML=html;
@@ -184,8 +189,8 @@ function colourOf(v,colours){
   if(blank(v))return "none";
   let c=colours[String(v).trim().toLowerCase()];
   if(!c){const s=String(v).trim().toUpperCase();
-    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^C\b|REVISE|PARTIAL/.test(s)?"amber":/^D\b|REJECT|PENDING/.test(s)?"red":/REVIEW|SUBMITTED/.test(s)?"blue":"grey";}
-  return ["green","amber","red","blue","grey"].includes(c)?c:"grey";
+    c=/^(A|B)\b/.test(s)||/APPROV|PROVIDED|COMPLETE/.test(s)?"green":/^UR$|REVIEW|PARTIAL/.test(s)?"amber":/^C\b|^D\b|REJECT|PENDING|REVISE/.test(s)?"red":"grey";}
+  return ["green","lgreen","amber","red","blue","grey"].includes(c)?c:"grey";
 }
 function merged(D,room){
   const typ=D.types.find(t=>String(t["Room Type"]).trim()===String(room["Room Type"]).trim())||{};
@@ -220,9 +225,9 @@ function renderLevel(D,code){
   // per-section status tables
   const secs=[];F.forEach(f=>{let s=secs.find(x=>x.name===f.section);if(!s)secs.push(s={name:f.section,items:[]});s.items.push(f)});
   for(const s of secs){
-    html+=`<section class="card"><h2>${esc(s.name)}</h2>${s.items.some(f=>isSD(f.col))?LEGEND:""}<div class="row thead"><div class="k">Item</div><div class="v">Approved / provided</div></div>`;
+    html+=`<section class="card"><h2>${esc(s.name)}</h2>${s.items.some(f=>isSD(f.col))?legend():""}<div class="row thead"><div class="k">Item</div><div class="v">Approved / provided</div></div>`;
     for(const f of s.items){const c=count(f.col);
-      html+=`<div class="row col"><div class="rowtop"><div class="k">${esc(f.label)}</div><div class="v">${f.col===SKETCH?c.lgreen:c.green} / ${N} <span class="pct">${((f.col===SKETCH?c.lgreen:c.green)/N*100).toFixed(0)}%</span></div></div>${bar(c)}<div class="legend">${c.lgreen&&f.col!==SKETCH?`<span class="chip c-lgreen">${c.lgreen} by sketch</span>`:""}${c.amber?`<span class="chip c-amber">${c.amber} revise</span>`:""}${c.red?`<span class="chip c-red">${c.red} rejected / pending</span>`:""}${c.blue?`<span class="chip c-blue">${c.blue} under review</span>`:""}${c.none+c.grey?`<span class="chip c-grey">${c.none+c.grey} not updated</span>`:""}</div></div>`;}
+      html+=`<div class="row col"><div class="rowtop"><div class="k">${esc(f.label)}</div><div class="v">${f.col===SKETCH?c.lgreen:c.green} / ${N} <span class="pct">${((f.col===SKETCH?c.lgreen:c.green)/N*100).toFixed(0)}%</span></div></div>${bar(c)}<div class="legend">${c.lgreen&&f.col!==SKETCH?`<span class="chip c-lgreen">${c.lgreen} coordinated</span>`:""}${c.amber?`<span class="chip c-amber">${c.amber} UR</span>`:""}${c.red?`<span class="chip c-red">${c.red} C</span>`:""}${c.grey?`<span class="chip c-grey">${c.grey} TBS</span>`:""}${c.none?`<span class="chip c-plain">${c.none} not updated</span>`:""}</div></div>`;}
     html+=`</section>`;
   }
   // room types on this level
