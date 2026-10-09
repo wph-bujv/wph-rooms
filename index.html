@@ -66,6 +66,7 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 .sk-yes{color:#00873A;font-weight:800}.sk-no{color:#E00000;font-weight:800}
 .tally{padding:6px 14px 8px;border-bottom:1px solid var(--line)}.trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}.trow:last-child{border-bottom:0}.trow .tl{flex:1;color:var(--ink)}.trow b{font-size:18px;min-width:40px;text-align:right}.ttot .tl{color:var(--muted);font-size:13px}
 .row.fls{display:block}.fi{font-weight:600;color:var(--ink);margin-bottom:4px}.fline{display:flex;justify-content:space-between;align-items:center;padding:3px 0 3px 12px}.fl{color:var(--muted);font-size:13.5px}.fv{display:flex;align-items:center}
+.card>h2{cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;-webkit-tap-highlight-color:transparent}.card>h2 .sign{font-size:22px;font-weight:700;line-height:1;margin-left:12px}.card.closed>.cbody{display:none}
 </style>
 </head>
 <body>
@@ -137,6 +138,18 @@ function badge(v){const k=String(v).trim().toUpperCase(),h=codeHex(k);return h?`
 function effChip(e){if(e.k!=="none"){const b=badge(e.t);if(b)return b;}return e.k==="none"?'<span class="empty">Not updated</span>':`<span class="chip c-${e.k}">${esc(e.t)}</span>`;}
 const legend=()=>'<div class="legend" style="padding:8px 14px;border-bottom:1px solid var(--line);gap:8px 12px;align-items:center">'+META.filter(m=>m.code!=="Coordinated").map(m=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)">${badge(m.code)||esc(m.code)}${esc(m.meaning.replace(/^Code C - /,""))}</span>`).join("")+'</div>';
 
+function collapsible(){
+  document.querySelectorAll("#app .card").forEach(card=>{
+    const h=card.querySelector(":scope > h2"); if(!h||card.dataset.col)return; card.dataset.col="1";
+    const body=document.createElement("div"); body.className="cbody";
+    while(h.nextSibling)body.appendChild(h.nextSibling);
+    card.appendChild(body); card.classList.add("closed");
+    const sg=document.createElement("span"); sg.className="sign"; sg.textContent="+"; h.appendChild(sg);
+    h.setAttribute("role","button"); h.tabIndex=0;
+    const t=()=>{const c=card.classList.toggle("closed");sg.textContent=c?"+":"−";};
+    h.addEventListener("click",t); h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();t();}});
+  });
+}
 function flsCard(D,code,over){
   const base=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
   const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
@@ -208,7 +221,7 @@ function render(D,id){
     html+=`<section class="card"><h2>${esc(s.name.replace(/^\d+[a-z]?\.\s*/i,""))}</h2>${lg}${sum}${rows}</section>`;
   }
   if(!flsDone)html+=flsCard(D,lvCode,room);
-  $("#app").innerHTML=html;
+  $("#app").innerHTML=html;collapsible();
   const upd=cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(cfg["Updated by"]||"")}<br>${esc(cfg["Footer note"]||"")}`;
 }
@@ -274,7 +287,7 @@ function renderLevel(D,code){
   const dot=v=>`<i class="dot d-${colourOf(v,D.colours)}"></i>`;
   html+=`<section class="card list"><h2>Rooms · tap for details</h2><div class="row thead"><div class="k">Room</div><div class="v">ID SD · MEP · ELV</div></div>${recs.map(x=>`<a href="?room=${encodeURIComponent(x["QR ID"])}"><b>${esc(x["QR ID"])} <span>${esc(x["Room Type"])}</span></b><span>${dot(x["ID SD Status"])}${dot(x["MEP Clearance"])}${dot(x["ELV Clearance"])}</span></a>`).join("")}</section>`;
   html+=flsCard(D,code,{});
-  $("#app").innerHTML=html;
+  $("#app").innerHTML=html;collapsible();
   const upd=D.cfg["Data last updated"];
   $("#foot").innerHTML=`${upd?"Data updated "+esc(fmtDate(upd))+" · ":""}${esc(D.cfg["Updated by"]||"")}<br>${esc(D.cfg["Footer note"]||"")}`;
 }
