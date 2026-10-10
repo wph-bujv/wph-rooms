@@ -80,6 +80,11 @@ h2.sec{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#1a5fb
 .legend i{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
 .zoom{display:inline-flex;gap:6px}
 
+.stair circle{fill:#00a04a;stroke:#fff;stroke-width:5}
+.stair rect{fill:#00a04a}
+.stair text{font:700 23px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;fill:#fff}
+.lvinfo{margin-top:18px}
+.lvinfo iframe{display:block;width:100%;border:0;border-radius:14px;background:var(--bg);min-height:400px}
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(10,15,25,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
 .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(680px,100%);height:88vh;background:var(--bg);border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);transition:transform .25s;z-index:21;display:flex;flex-direction:column;overflow:hidden}
@@ -215,8 +220,11 @@ function viewLevel(t,l){
     ${i>0?`<a class="btn" href="#/${t}/${lv[i-1]}">▼ Level ${lv[i-1].slice(1)}</a>`:""}${i<lv.length-1?`<a class="btn" href="#/${t}/${lv[i+1]}">▲ Level ${lv[i+1].slice(1)}</a>`:""}
     <a class="btn" href="index.html?level=${t}${l}" target="_blank" rel="noopener">Level summary ↗</a></div></div>
     <div class="planbox" id="pb"><div class="plan" id="plan"><img src="${p.img}" alt="Tower ${t} level ${l.slice(1)} layout" width="${Math.round(p.w)}" height="${Math.round(p.h)}"><svg viewBox="0 0 ${p.w} ${p.h}" id="ov"></svg></div></div>
-    <div class="legend" id="leg"></div>`;
+    <div class="legend" id="leg"></div>
+    <section class="lvinfo"><h2 class="sec">Level information</h2><iframe id="lvframe" title="Level information" scrolling="no" src="index.html?level=${t}${l}&embed=1"></iframe></section>`;
   drawRooms(t,l);
+  const fr=$("#lvframe"),fitF=()=>{try{const b=fr.contentDocument&&fr.contentDocument.documentElement;if(b)fr.style.height=b.scrollHeight+"px"}catch(e){}};
+  fr.onload=()=>{fitF();try{new ResizeObserver(fitF).observe(fr.contentDocument.body);fr.contentDocument.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("a[href*=\"room=\"]");if(a){e.preventDefault();openRoom(new URL(a.href).searchParams.get("room"));return}setTimeout(fitF,60)})}catch(e){}};
   document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));drawRooms(t,l)});
   const fit=()=>{const pb=$("#pb"),pl=$("#plan");const base=Math.min(pb.clientWidth,(window.innerHeight*0.76)*p.w/p.h);pl.style.width=Math.round(base*zoom)+"px"};
   zoom=1;fit();window.onresize=fit;
@@ -231,7 +239,8 @@ function drawRooms(t,l){
       <polygon points="${r.poly.map(q=>q.join(",")).join(" ")}" fill="${mode==='type'?'#1f3a5f':c}" fill-opacity="${fillOp}"/>
       <rect x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="7" fill="${mode==='type'?c:'#1f3a5f'}"/>
       <text x="${x}" y="${y+(sub?-4:12)}" text-anchor="middle">${esc(lab)}</text>${sub?`<text class="sm" x="${x}" y="${y+25}" text-anchor="middle">${esc(sub)}</text>`:""}</g>`}).join("");
-  $("#leg").innerHTML=legendHtml(t,l);
+  $("#ov").innerHTML+=(p.stairs||[]).map(([n,x,y])=>{const w=n.length*15+22,top=y<170,left=x<p.w/2,lx=top?x-w/2:(left?x-26-w:x+26),ly=top?y-58:y-17;return `<g class="stair" aria-label="${esc(n)}"><circle cx="${x}" cy="${y}" r="18"/><rect x="${lx}" y="${ly}" width="${w}" height="34" rx="9"/><text x="${lx+w/2}" y="${ly+25}" text-anchor="middle">${esc(n)}</text></g>`}).join("");
+  $("#leg").innerHTML=legendHtml(t,l)+`<span><i style="background:#00a04a;border-radius:50%"></i>Staircase (level QR labels are installed at both stair landings)</span>`;
   document.querySelectorAll(".room").forEach(g=>{const go=()=>openRoom(g.dataset.id);g.onclick=go;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
 }
 function openRoom(id){
