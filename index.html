@@ -264,7 +264,7 @@ function renderLevel(D,code){
   $("#title").textContent=`${tw} · Level ${lvl.replace(/^L/,"")}`;
   if(!rooms.length){$("#app").innerHTML='<div class="card msg">No rooms found for this level.</div>';return;}
   const inTower=D.rooms.filter(r=>r.Tower===tw);
-  $("#sub").textContent=`Level summary · ${rooms.length} rooms (${(rooms.length/inTower.length*100).toFixed(1)}% of ${tw})`;
+  $("#sub").textContent=`Level summary · ${rooms.length} guest, family rooms & suites (${(rooms.length/inTower.length*100).toFixed(1)}% of ${tw})`;
   document.title=code+" – WPH Level Status";
   const recs=rooms.map(r=>merged(D,r)), N=recs.length;
   // status columns from Fields sheet

@@ -192,17 +192,17 @@ function viewHome(){
   head("Building explorer","Select a tower",[["Towers",""]]);
   $("#app").innerHTML=`<h2 class="sec">Towers</h2><div class="towers">`+["A","B"].map(t=>{
     const lv=levelsOf(t), ids=lv.flatMap(l=>roomsOf(t,l).map(r=>r.id));
-    return `<a class="card tower" href="#/${t}">${towerSvg(t)}<div class="tn">Tower ${t}</div><div class="tm">${lv.length} levels · ${ids.length} rooms</div><div class="tm">ID shop drawings approved: ${approvedPct(ids)}%</div></a>`}).join("")+
+    return `<a class="card tower" href="#/${t}">${towerSvg(t)}<div class="tn">Tower ${t}</div><div class="tm">${lv.length} levels · ${ids.length} guest, family rooms & suites</div><div class="tm">ID shop drawings approved: ${approvedPct(ids)}%</div></a>`}).join("")+
     `</div><p class="hint">Tap a tower to see its levels, then a level to open its layout.</p>`;
 }
 function viewTower(t){
   const lv=levelsOf(t);if(!lv.length)return viewHome();
   const all=lv.flatMap(l=>roomsOf(t,l).map(r=>r.id));
-  head(`Tower ${t}`,`${lv.length} levels · ${all.length} rooms`,[["Towers","#/"],[`Tower ${t}`,""]]);
+  head(`Tower ${t}`,`${lv.length} levels · ${all.length} guest, family rooms & suites`,[["Towers","#/"],[`Tower ${t}`,""]]);
   const leg=["A","UR","C","TBS"].map(c=>`<span><i style="background:${stHex(c)}"></i>${esc(c)} – ${esc((D.st[c]||{}).meaning||"")}</span>`).join("");
   $("#app").innerHTML=`<div class="lvwrap"><div><h2 class="sec">Levels</h2><div class="levels">`+lv.slice().reverse().map(l=>{
       const ids=roomsOf(t,l).map(r=>r.id);
-      return `<a class="card lv" href="#/${t}/${l}"><div class="ic"><small>LEVEL</small><b>${l.slice(1)}</b></div><div class="mid"><div class="t">Tower ${t} · Level ${l.slice(1)}</div><div class="s">${ids.length} rooms · ID SD approved ${approvedPct(ids)}%</div>${statusBar(ids)}</div><div class="chev">›</div></a>`}).join("")+
+      return `<a class="card lv" href="#/${t}/${l}"><div class="ic"><small>LEVEL</small><b>${l.slice(1)}</b></div><div class="mid"><div class="t">Tower ${t} · Level ${l.slice(1)}</div><div class="s">${ids.length} guest, family rooms & suites · ID SD approved ${approvedPct(ids)}%</div>${statusBar(ids)}</div><div class="chev">›</div></a>`}).join("")+
     `</div></div><div class="card side"><h2 class="sec" style="margin:0 0 6px">Tower ${t}</h2>${towerSvg(t)}<p>The bar under each level shows the ID shop drawing status of its rooms.</p><div class="legend">${leg}</div></div></div>`;
 }
 function legendHtml(t,l){
@@ -213,7 +213,7 @@ function legendHtml(t,l){
 }
 function viewLevel(t,l){
   const p=P[t+l];if(!p)return viewTower(t);
-  head(`Tower ${t} · Level ${l.slice(1)}`,`${p.rooms.length} rooms · tap a room to see its information`,[["Towers","#/"],[`Tower ${t}`,`#/${t}`],[`Level ${l.slice(1)}`,""]]);
+  head(`Tower ${t} · Level ${l.slice(1)}`,`${p.rooms.length} guest, family rooms & suites · tap one to see its information`,[["Towers","#/"],[`Tower ${t}`,`#/${t}`],[`Level ${l.slice(1)}`,""]]);
   const lv=levelsOf(t),i=lv.indexOf(l);
   $("#app").innerHTML=`<div class="tools"><div class="seg" role="group" aria-label="Colour rooms by">${MODES.map(([k,n])=>`<button data-m="${k}" aria-pressed="${k===mode}">${n}</button>`).join("")}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="zoom"><button class="btn" id="zo" aria-label="Zoom out">−</button><button class="btn" id="zi" aria-label="Zoom in">+</button></span>
