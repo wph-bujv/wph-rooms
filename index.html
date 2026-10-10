@@ -113,7 +113,7 @@ async function load(){
     if(!blank(r.Clearance))colours[String(r.Clearance).trim().toLowerCase()]=String(r.Colour_1||r["Colour_1"]||"grey").toLowerCase();
   });
   const pick=(...n)=>{for(const x of n){if(wb.Sheets[x])return sheet(wb,x)}return []};
-  return {cfg,colours,rooms:pick("Clearances","Rooms"),types:pick("Shop Drawings","Types"),fields:sheet(wb,"Fields"),fls:sheet(wb,"FLS")};
+  return {cfg,colours,rooms:pick("Clearances","Rooms"),types:pick("Shop Drawings","Types"),fields:sheet(wb,"Fields"),fls:sheet(wb,"FLS"),flsRooms:sheet(wb,"FLS Rooms")};
 }
 
 function chip(v,colours){
@@ -159,12 +159,15 @@ const ROOM_FLS_SKIP=["Civil - Steel Doors"];
 function flsCard(D,code,over,skip){
   skip=skip||[];
   const base=(D.fls||[]).find(r=>String(r["Level Code"]||"").trim().toUpperCase()===code)||{};
-  const row=Object.assign({},base);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
+  const isRoom=over&&!blank(over["QR ID"]);
+  const rr=isRoom?((D.flsRooms||[]).find(r=>String(r["QR ID"]||"").trim().toUpperCase()===String(over["QR ID"]).trim().toUpperCase())||{}):{};
+  const row=Object.assign({},base,rr);Object.keys(over||{}).forEach(k=>{if(/^(Civil|MEP) - /.test(k)&&!blank(over[k]))row[k]=over[k]});
   const groups=[["Civil",["Steel Doors","Wooden Doors","Fire Sealant","Hardware"]],["MEP",["Fire Sealant","Fire Alarm","Fire Fighting"]]];
-  Object.keys(row).filter(k=>/^(Civil|MEP) - /.test(k)&&!/ Date$/.test(k)).forEach(k=>{const p=k.split(" - ");const g=p[0],it=p[1];const G=groups.find(x=>x[0]===g);if(G&&it&&!G[1].includes(it))G[1].push(it)});
-  const st=(key)=>{const v=blank(row[key])?"TBS":row[key],d=row[key+" Date"];const b=blank(v)?'<span class="empty">Not updated</span>':(badge(v)||`<span class="chip c-plain">${esc(v)}</span>`);return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
-  const item=(g,it)=>`<div class="row fls"><div class="k fi">${esc(it)}</div><div class="fsub">`+[["Material","Material"],["Shop Drawing","Shop drawing"]].map(([k,l])=>`<div class="fline"><span class="fl">${l}</span><span class="fv">${st(g+" - "+it+" - "+k)}</span></div>`).join("")+`</div></div>`;
+  const LV={Civil:[["Material","Material"],["Rooms WIR","Rooms WIR"],["Corridor WIR","Corridor WIR"]],MEP:[["Material","Material"],["Rooms WIR","Rooms WIR"],["Corridor WIR","Corridor WIR"],["Elec. Room WIR","Elec. room WIR"],["BOH WIR","BOH WIR"]]};
+  const lines=g=>isRoom?[["Material","Material"],["WIR","WIR"]]:LV[g];
   groups.forEach(G=>{G[1]=G[1].filter(it=>!skip.includes(G[0]+" - "+it))});
+  const st=(key)=>{const v=blank(row[key])?"TBS":row[key],d=row[key+" Date"];const b=badge(v)||`<span class="chip c-plain">${esc(v)}</span>`;return `${blank(d)?"":`<span class="rev">${esc(fmtDate(d))}</span>`}${b}`;};
+  const item=(g,it)=>`<div class="row fls"><div class="k fi">${esc(it)}</div><div class="fsub">`+lines(g).map(([k,l])=>`<div class="fline"><span class="fl">${l}</span><span class="fv">${st(g+" - "+it+" - "+k)}</span></div>`).join("")+`</div></div>`;
   return `<section class="card"><h2>FLS – Fire Life &amp; Safety</h2>`+groups.filter(G=>G[1].length).map(([g,its])=>`<div class="row thead"><div class="k">${g}</div><div class="v">Status</div></div>`+its.map(it=>item(g,it)).join("")).join("")+`</section>`;
 }
 function render(D,id){
