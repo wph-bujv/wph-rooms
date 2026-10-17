@@ -125,7 +125,18 @@ const DATA_URL="WPH_Room_Register.xlsx", PLAN_URL="plans.json";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const blank=v=>v===undefined||v===null||String(v).trim()==="";
-function sheet(wb,n){const ws=wb.Sheets[n];return ws?XLSX.utils.sheet_to_json(ws,{defval:"",raw:true}):[]}
+const SD_KEYS={"ID":["ID SD Revision","ID SD Status"],"Drainage":"MEP SD - Drainage Network","Water Supply":"MEP SD - Water Supply Network","Chilled Water":"MEP SD - Chilled Water Network","Fire Fighting":"MEP SD - Fire Fighting Network","AC":"MEP SD - AC System","Ventilation":"MEP SD - Ventilation System","CDP":"MEP SD - CDP System","Small Power":"MEP SD - Small Power","Lighting":"MEP SD - Lighting","ICT System GRMS":"ELV SD - ICT System GRMS","ICT GRMS Lighting Control":"ELV SD - ICT GRMS Lighting Control"};
+function sheet(wb,name){const ws=wb.Sheets[name];if(!ws)return [];
+  const A=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
+  const r2=(A[1]||[]).map(v=>String(v).trim().toLowerCase());
+  if(!(r2.includes("rev.")||r2.includes("rev"))||!r2.includes("status"))return XLSX.utils.sheet_to_json(ws,{defval:"",raw:true});
+  // two-row header: group title (merged) on row 1, "rev." / "Status" on row 2
+  let grp="";const keys=(A[0]||[]).map((v,i)=>{const t=String(v).trim(),s=r2[i];if(t)grp=t;
+    if(s!=="rev."&&s!=="rev"&&s!=="status")return t;
+    const g=grp.replace(/\s*SD$/i,"").trim(),m=SD_KEYS[g];
+    if(Array.isArray(m))return s==="status"?m[1]:m[0];
+    const k=m||g;return s==="status"?k:k+" Rev";});
+  return A.slice(2).filter(r=>r.some(v=>v!==""&&v!=null)).map(r=>{const o={};keys.forEach((k,i)=>{if(k)o[k]=r[i]??""});return o});}
 
 const TYPE_COL={"King":"#8b2323","King ADA":"#6d3b1f","Queen":"#2d7a4a","Queen ADA":"#7a5a2d","Family":"#b0186b","Family ADA":"#7f9a14","Suite":"#7b3fa0","Suite ADA":"#5b4b8a","Premium Suite":"#b8860b"};
 const CLR={green:"#00B050",amber:"#FFC000",red:"#FF0000",grey:"#BFBFBF"};
