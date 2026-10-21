@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WPH BOH Room Progress</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#14213d;--muted:#5b6475;--line:#e3e7ee;--brand:#1f3a5f;--brand2:#2c5282;--track:#eef0f3;
+  --ok:#00873A;--ok-bg:#dff3e6;--wip:#8a5a00;--wip-bg:#fff1cc;--ns:#b3261e;--ns-bg:#fde4e1;--na:#5f6368;--na-bg:#eef0f3;
+  --s-MEP:#2563eb;--s-FIT:#b45309;--s-KIT:#0f766e;--s-ELV:#7c3aed;--s-FLS:#dc2626;--s-TC:#0891b2;--s-CLN:#65a30d;--s-GEN:#6b7280;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;--track:#232d3d;
+  --ok:#7bd88f;--ok-bg:#173823;--wip:#f5c15c;--wip-bg:#3a2c10;--ns:#f28b82;--ns-bg:#3c1a19;--na:#b7bdc8;--na-bg:#232d3d;
+  --s-MEP:#60a5fa;--s-FIT:#f59e0b;--s-KIT:#2dd4bf;--s-ELV:#a78bfa;--s-FLS:#f87171;--s-TC:#22d3ee;--s-CLN:#a3e635;--s-GEN:#9ca3af;}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--muted:#9aa5b8;--line:#263247;--brand:#24446e;--brand2:#2f5a8f;--track:#232d3d;
+  --ok:#7bd88f;--ok-bg:#173823;--wip:#f5c15c;--wip-bg:#3a2c10;--ns:#f28b82;--ns-bg:#3c1a19;--na:#b7bdc8;--na-bg:#232d3d;
+  --s-MEP:#60a5fa;--s-FIT:#f59e0b;--s-KIT:#2dd4bf;--s-ELV:#a78bfa;--s-FLS:#f87171;--s-TC:#22d3ee;--s-CLN:#a3e635;--s-GEN:#9ca3af;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 16px 24px}
+header .proj{font-size:12px;opacity:.85;letter-spacing:.05em;text-transform:uppercase}
+header .loc{font-size:14px;font-weight:600;margin-top:4px;opacity:.95}
+header h1{margin:6px 0 2px;font-size:28px;line-height:1.15;letter-spacing:.01em}
+header .sub{font-size:15px;opacity:.95}
+header .upd{font-size:12px;opacity:.85;margin-top:12px}header .upd:empty{display:none}
+header a{color:#fff}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px 10px;font-size:13px}
+main{max-width:680px;margin:-12px auto 0;padding:0 12px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
+.card>h2{margin:0;padding:12px 14px;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card>h2 small{font-weight:500;text-transform:none;letter-spacing:0;opacity:.9;font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.kpi{background:var(--card);padding:12px 12px}
+.kpi b{display:block;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:12px}
+.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.st-ok{color:var(--ok);background:var(--ok-bg)}.st-wip{color:var(--wip);background:var(--wip-bg)}.st-ns{color:var(--ns);background:var(--ns-bg)}.st-na{color:var(--na);background:var(--na-bg)}
+.scope{padding:12px 14px;border-top:1px solid var(--line)}
+.scope:first-of-type{border-top:0}
+.scope .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.scope .nm{font-weight:700;display:flex;align-items:center;gap:8px}
+.sw{width:10px;height:10px;border-radius:3px;flex:0 0 10px}
+.scope .nums{display:flex;justify-content:space-between;gap:10px;margin-top:6px;font-size:13px;color:var(--muted)}
+.scope .nums b{color:var(--ink);font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--track);border-radius:5px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:5px}
+.stack{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--track);margin:4px 0}
+.stack i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);padding:2px 14px 12px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.pad{padding:12px 14px}
+.muted{color:var(--muted)}
+.items .it{display:flex;gap:10px;padding:9px 14px;border-top:1px solid var(--line);font-size:14px}
+.items .it .no{color:var(--muted);min-width:22px;text-align:right;font-variant-numeric:tabular-nums}
+.items .it .tx{flex:1}
+.items .it .meta{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+details{border-top:1px solid var(--line)}
+details:first-of-type{border-top:0}
+summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600;-webkit-tap-highlight-color:transparent}
+summary::-webkit-details-marker{display:none}
+summary .cnt{color:var(--muted);font-weight:600;font-size:13px;margin-left:auto}
+summary:after{content:"+";font-size:20px;line-height:1;color:var(--muted);margin-left:6px}
+details[open] summary:after{content:"−"}
+.stage{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--line);font-size:13.5px}
+.stage:first-of-type{border-top:0}
+.stage .sn{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;background:var(--track);color:var(--muted);flex:0 0 26px}
+.stage.cur .sn{background:var(--brand2);color:#fff}
+.stage.done .sn{background:var(--ok-bg);color:var(--ok)}
+.stage .sl{flex:1}
+.stage b{font-variant-numeric:tabular-nums}
+input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:16px;margin-top:12px}
+.list a{display:block;padding:10px 14px;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}
+.list a .l1{display:flex;justify-content:space-between;gap:10px}
+.list a .l1 span{color:var(--muted);font-size:13px;white-space:nowrap}
+.list a .stack{height:6px;margin-top:6px}
+.msg{padding:28px 16px;text-align:center;color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand2);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 10px}
+@keyframes s{to{transform:rotate(360deg)}}
+.back{display:inline-block;margin-top:10px;font-size:13px;opacity:.9}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:4px 16px 24px}
+.note{font-size:12.5px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line)}
+@media (max-width:380px){.kpi b{font-size:20px}header h1{font-size:24px}}
+</style>
+</head>
+<body>
+<header><div class="proj">Qiddiya Water Park Hotel · BUJV</div><div class="loc" id="loc">Tower A · Basement · Back of House</div><h1 id="title">BOH progress</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div><div id="nav"></div></header>
+<main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
+<footer id="foot">Live from the Tower A Basement Close-Out List (Combined Works to Go)</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="scopes.js"></script>
+<script>
+/* ====== SETTINGS ======
+   DATA_URL: the close-out Excel. Keep it in this folder with this exact file name.
+   To update the live pages, replace that file on GitHub with the latest tracker (same name). */
+const DATA_URL = "BOH_Close_Out_List.xlsx";
+const SHEET = "Combined Works to Go";
+/* ====================== */
+const {SCOPES, classify} = window.BOHScopes;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug=s=>String(s??"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
+const fmtPct=v=>(v>=10||v===0?Math.round(v):v.toFixed(1))+"%";
+const STATUS={ok:["Complete","st-ok"],wip:["In progress","st-wip"],ns:["Not started","st-ns"],na:["No scope","st-na"]};
+const STAGES={"01":"Verify / inspect / confirm","02":"Enabling / access / supports","03":"MEP first / second fix","04":"Wet works / builder works","05":"Close-up / firestopping / ceiling","06":"Finishes / painting","07":"Final fix / terminations","08":"Testing / commissioning / snagging","09":"Final clean / handover"};
+
+function col(row,...names){for(const n of names){for(const k in row){if(k.trim().toLowerCase()===n.toLowerCase())return row[k];}}return "";}
+function itemState(v){const s=String(v||"").toLowerCase();
+  if(/clos|complet|done|accept|rectif|finish|resolved/.test(s))return "closed";
+  if(/progress|ongoing|partial|start|wip|underway/.test(s))return "wip";
+  return "open";}
+function scopeStatus(list){ // list = items of one scope
+  if(!list.length)return "na";
+  const c=list.filter(i=>i.state==="closed").length, w=list.filter(i=>i.state==="wip").length;
+  if(c===list.length)return "ok";
+  if(c>0||w>0)return "wip";
+  return "ns";}
+
+async function load(){
+  const res=await fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"});
+  if(!res.ok)throw new Error("Could not load the close-out list ("+res.status+")");
+  const lm=res.headers.get("Last-Modified");
+  const wb=XLSX.read(await res.arrayBuffer(),{type:"array",cellDates:true});
+  let ws=wb.Sheets[SHEET]||wb.Sheets[wb.SheetNames.find(n=>/works to go/i.test(n))]||wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{defval:"",raw:true});
+  try{const d=lm?new Date(lm):(wb.Props&&wb.Props.ModifiedDate?new Date(wb.Props.ModifiedDate):null);
+    if(d&&!isNaN(d)){const P=Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Riyadh",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d).map(x=>[x.type,x.value]));
+      $("#upd").textContent=`Last update: ${P.day}-${P.month}-${P.year} ${P.hour}:${P.minute} (KSA)`;}}catch(e){}
+  const items=[];
+  rows.forEach(r=>{
+    const text=String(col(r,"Outstanding Work listed","Outstanding Work")).trim(); if(!text)return;
+    const id=String(col(r,"Room ID")).trim(), name=String(col(r,"Room Name")).trim()||id;
+    const seq=String(col(r,"Sequence")).trim();
+    items.push({id,name,text,no:col(r,"Item No per room"),by:col(r,"Idenitifed by","Identified by"),seq,stage:(seq.match(/^\d{2}/)||[""])[0],
+      bujv:String(col(r,"BUJV Status")).trim(),qic:String(col(r,"QIC status onsite inspection","QIC Status")).trim(),
+      due:col(r,"Required completion date"),owner:String(col(r,"Owner of action")).trim(),tower:String(col(r,"Tower A or B")).trim(),
+      state:itemState(col(r,"BUJV Status")),scope:classify(text,name,col(r,"Scope"))});
+  });
+  // group into rooms (Room ID + Room Name); key = Room ID unless that ID is shared by two names
+  const map=new Map();items.forEach(i=>{const k=i.id+"\u0001"+i.name;if(!map.has(k))map.set(k,{id:i.id,name:i.name,items:[]});map.get(k).items.push(i);});
+  const rooms=[...map.values()];const idCount={};rooms.forEach(r=>idCount[r.id]=(idCount[r.id]||0)+1);
+  rooms.forEach(r=>{r.key=idCount[r.id]>1?slug(r.id+"-"+r.name):slug(r.id||r.name);r.code=/^PB\d/i.test(r.id)?r.id:"";
+    r.open=r.items.filter(i=>i.state!=="closed");});
+  return {items,rooms};
+}
+
+function scopeTotals(list){const t={};SCOPES.forEach(s=>t[s.code]=list.filter(i=>i.scope===s.code));return t;}
+function stackBar(byScope,total){return `<div class="stack">${SCOPES.map(s=>{const n=byScope[s.code];return n?`<i style="width:${n/total*100}%;background:var(--s-${s.code})" title="${s.name}: ${n}"></i>`:"";}).join("")}</div>`;}
+function legend(){return `<div class="legend">${SCOPES.map(s=>`<span><i class="sw" style="background:var(--s-${s.code})"></i>${s.name}</span>`).join("")}</div>`;}
+function chip(st){const [t,c]=STATUS[st];return `<span class="chip ${c}">${t}</span>`;}
+function fmtDate(v){if(!v)return "";const d=v instanceof Date?v:new Date(v);if(isNaN(d))return String(v);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"});}
+
+function renderRoom(D,room){
+  const all=D.items, allOpen=all.filter(i=>i.state!=="closed");
+  const R=room.items, Ropen=room.open, n=R.length, nOpen=Ropen.length;
+  const byScope=scopeTotals(R), bohScope=scopeTotals(allOpen);
+  const ranked=[...D.rooms].sort((a,b)=>b.open.length-a.open.length);const rank=ranked.indexOf(room)+1;
+  const closed=n-nOpen;
+  document.title=room.name+" · WPH BOH";
+  $("#title").textContent=room.name;
+  $("#sub").textContent=room.code?("Room "+room.code):"";
+  $("#tags").innerHTML=`<span class="tag">${nOpen} open item${nOpen===1?"":"s"}</span><span class="tag">${fmtPct(pct(nOpen,allOpen.length))} of all BOH open items</span>`;
+  $("#nav").innerHTML=`<a class="back" href="./">← All BOH rooms</a>`;
+  let h=`<section class="card"><div class="kpis">
+    <div class="kpi"><b>${nOpen}</b><span>Open items in room</span></div>
+    <div class="kpi"><b>${fmtPct(pct(nOpen,allOpen.length))}</b><span>of ${allOpen.length} BOH open items</span></div>
+    <div class="kpi"><b>${fmtPct(pct(closed,n))}</b><span>Items closed (${closed}/${n})</span></div></div>
+    <div class="pad"><div class="muted" style="font-size:13px">Room share of open items, by scope</div>${stackBar(Object.fromEntries(SCOPES.map(s=>[s.code,byScope[s.code].filter(i=>i.state!=="closed").length])),Math.max(nOpen,1))}<div class="muted" style="font-size:12.5px">Rank ${rank} of ${D.rooms.length} BOH rooms by open items</div></div>${legend()}</section>`;
+  h+=`<section class="card"><h2>Scope status <small>open items · share of room</small></h2>`;
+  SCOPES.forEach(s=>{
+    const L=byScope[s.code]; if(s.code==="GEN"&&!L.length)return;
+    const o=L.filter(i=>i.state!=="closed").length, st=scopeStatus(L), c=L.length-o;
+    h+=`<div class="scope"><div class="top"><div class="nm"><i class="sw" style="background:var(--s-${s.code})"></i>${esc(s.name)}</div>${chip(st)}</div>
+      ${L.length?`<div class="bar"><i style="width:${pct(o,Math.max(nOpen,1))}%;background:var(--s-${s.code})"></i></div>
+      <div class="nums"><span><b>${o}</b> of ${nOpen} room items · <b>${fmtPct(pct(o,Math.max(nOpen,1)))}</b></span><span>${c?`${c} closed · `:""}${fmtPct(pct(o,bohScope[s.code].length||1))} of BOH ${esc(s.name)}</span></div>`
+      :`<div class="nums"><span>No ${esc(s.name)} items listed for this room</span></div>`}</div>`;
+  });
+  h+=`</section>`;
+  // sequence
+  const stOpen={};Ropen.forEach(i=>stOpen[i.stage]=(stOpen[i.stage]||0)+1);
+  const cur=Object.keys(STAGES).find(k=>stOpen[k]);
+  h+=`<section class="card"><h2>Close-out sequence <small>${cur?"current gate: "+cur:"all gates clear"}</small></h2>`;
+  Object.entries(STAGES).forEach(([k,v])=>{const c=stOpen[k]||0;h+=`<div class="stage ${k===cur?"cur":(!c?"done":"")}"><div class="sn">${k}</div><div class="sl">${esc(v)}</div><b>${c||"✓"}</b></div>`;});
+  h+=`</section>`;
+  // item lists per scope
+  h+=`<section class="card"><h2>Outstanding items <small>tap a scope</small></h2>`;
+  SCOPES.forEach(s=>{const L=byScope[s.code].filter(i=>i.state!=="closed");if(!L.length)return;
+    L.sort((a,b)=>a.stage.localeCompare(b.stage)||(+a.no||0)-(+b.no||0));
+    h+=`<details><summary><span class="nm" style="display:flex;align-items:center;gap:8px"><i class="sw" style="background:var(--s-${s.code})"></i>${esc(s.name)}</span><span class="cnt">${L.length}</span></summary><div class="items">${L.map(i=>`<div class="it"><div class="no">${esc(i.no)}</div><div class="tx">${esc(i.text)}<span class="meta">Seq ${esc(i.seq||"—")} · ${esc(i.bujv||"Outstanding")}${i.qic?" · QIC: "+esc(i.qic):""}${i.owner?" · "+esc(i.owner):""}${i.due?" · due "+esc(fmtDate(i.due)):""}</span></div></div>`).join("")}</div></details>`;});
+  if(!nOpen)h+=`<div class="pad muted">No outstanding items — room is clear.</div>`;
+  h+=`<div class="note">Status per scope: <b>Complete</b> = all items closed · <b>In progress</b> = at least one item in progress or closed · <b>Not started</b> = all items still outstanding (per the BUJV Status column).</div></section>`;
+  $("#app").innerHTML=h;
+}
+
+function renderIndex(D){
+  const all=D.items, open=all.filter(i=>i.state!=="closed"), closed=all.length-open.length;
+  const byScope=scopeTotals(all);
+  $("#title").textContent="BOH engineering progress";
+  $("#sub").textContent=`${D.rooms.length} rooms · ${all.length} close-out items`;
+  $("#tags").innerHTML=`<span class="tag">${open.length} open</span><span class="tag">${closed} closed</span>`;
+  let h=`<section class="card"><div class="kpis">
+    <div class="kpi"><b>${open.length}</b><span>Open items</span></div>
+    <div class="kpi"><b>${D.rooms.length}</b><span>Rooms / areas</span></div>
+    <div class="kpi"><b>${fmtPct(pct(closed,all.length))}</b><span>Closed (${closed}/${all.length})</span></div></div>
+    <div class="pad">${stackBar(Object.fromEntries(SCOPES.map(s=>[s.code,byScope[s.code].filter(i=>i.state!=="closed").length])),Math.max(open.length,1))}</div>${legend()}</section>`;
+  h+=`<section class="card"><h2>Scope status · all BOH <small>open items · share of BOH</small></h2>`;
+  SCOPES.forEach(s=>{const L=byScope[s.code];if(s.code==="GEN"&&!L.length)return;const o=L.filter(i=>i.state!=="closed").length;
+    const rs=D.rooms.map(r=>scopeStatus(r.items.filter(i=>i.scope===s.code)));
+    const cnt=k=>rs.filter(x=>x===k).length;
+    h+=`<div class="scope"><div class="top"><div class="nm"><i class="sw" style="background:var(--s-${s.code})"></i>${esc(s.name)}</div>${chip(scopeStatus(L))}</div>
+      <div class="bar"><i style="width:${pct(o,Math.max(open.length,1))}%;background:var(--s-${s.code})"></i></div>
+      <div class="nums"><span><b>${o}</b> open · <b>${fmtPct(pct(o,Math.max(open.length,1)))}</b> of BOH</span><span>Rooms: ${cnt("ok")} complete · ${cnt("wip")} in progress · ${cnt("ns")} not started</span></div></div>`;});
+  h+=`</section>`;
+  h+=`<input type="search" id="q" placeholder="Search room name or ID…" autocomplete="off">`;
+  h+=`<section class="card list"><h2>Rooms <small>tap for details</small></h2><div id="list"></div></section>`;
+  $("#app").innerHTML=h;
+  const draw=()=>{const q=$("#q").value.trim().toLowerCase();
+    const L=D.rooms.filter(r=>!q||(r.name+" "+r.id).toLowerCase().includes(q)).sort((a,b)=>b.open.length-a.open.length);
+    $("#list").innerHTML=L.map(r=>{const bs={};SCOPES.forEach(s=>bs[s.code]=r.open.filter(i=>i.scope===s.code).length);
+      return `<a href="?room=${encodeURIComponent(r.key)}"><div class="l1"><b>${esc(r.name)}</b><span>${r.code?esc(r.code)+" · ":""}${r.open.length} open · ${fmtPct(pct(r.open.length,Math.max(open.length,1)))}</span></div>${stackBar(bs,Math.max(r.open.length,1))}</a>`;}).join("")||'<div class="msg">No match</div>';};
+  $("#q").addEventListener("input",draw);draw();
+}
+
+(async()=>{
+  try{
+    const D=await load();
+    const key=(new URLSearchParams(location.search).get("room")||"").trim().toLowerCase();
+    if(key){const room=D.rooms.find(r=>r.key===key)||D.rooms.find(r=>slug(r.id)===slug(key)||slug(r.name)===slug(key));
+      if(room)renderRoom(D,room);else{renderIndex(D);$("#app").insertAdjacentHTML("afterbegin",`<div class="card msg">Room “${esc(key)}” was not found in the latest list — it may have been closed out or renamed.</div>`);}}
+    else renderIndex(D);
+  }catch(e){$("#app").innerHTML=`<div class="card msg">${esc(e.message)}<br><br>Please try again shortly.</div>`;}
+})();
+</script>
+</body>
+</html>
