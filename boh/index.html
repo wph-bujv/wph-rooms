@@ -142,8 +142,8 @@ async function load(){
   });
   // group into rooms (Room ID + Room Name); key = Room ID unless that ID is shared by two names
   const map=new Map();items.forEach(i=>{const k=i.id+"\u0001"+i.name;if(!map.has(k))map.set(k,{id:i.id,name:i.name,items:[]});map.get(k).items.push(i);});
-  const rooms=[...map.values()];const idCount={};rooms.forEach(r=>idCount[r.id]=(idCount[r.id]||0)+1);
-  rooms.forEach(r=>{r.key=idCount[r.id]>1?slug(r.id+"-"+r.name):slug(r.id||r.name);r.code=/^PB\d/i.test(r.id)?r.id:"";
+  const rooms=[...map.values()];const idCount={},used=new Set();rooms.forEach(r=>idCount[slug(r.id)]=(idCount[slug(r.id)]||0)+1);
+  rooms.forEach(r=>{let k=idCount[slug(r.id)]>1?slug(r.id+"-"+r.name):slug(r.id||r.name),b=k,n=2;while(used.has(k))k=b+"-"+(n++);used.add(k);r.key=k;r.code=/^PB\d/i.test(r.id)?r.id:"";
     r.open=r.items.filter(i=>i.state!=="closed");});
   return {items,rooms};
 }
