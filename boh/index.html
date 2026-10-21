@@ -22,7 +22,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 16px 24px}
 header .proj{font-size:12px;opacity:.85;letter-spacing:.05em;text-transform:uppercase}
-header .loc{font-size:14px;font-weight:600;margin-top:4px;opacity:.95}
+header .loc{font-size:18px;font-weight:800;letter-spacing:.03em;margin-top:4px;opacity:.95}
 header h1{margin:6px 0 2px;font-size:28px;line-height:1.15;letter-spacing:.01em}
 header .sub{font-size:15px;opacity:.95}
 header .upd{font-size:12px;opacity:.85;margin-top:12px}header .upd:empty{display:none}
@@ -87,7 +87,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:4px 16px 24px
 </style>
 </head>
 <body>
-<header><div class="proj">Qiddiya Water Park Hotel · BUJV</div><div class="loc" id="loc">Tower A · Basement · Back of House</div><h1 id="title">BOH progress</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div><div id="nav"></div></header>
+<header><div class="proj">Qiddiya Water Park Hotel · BUJV</div><div class="loc" id="loc">TOWER A · BASEMENT</div><div class="proj" style="margin-top:2px">Back of House (BOH)</div><h1 id="title">BOH progress</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div><div id="nav"></div></header>
 <main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
 <footer id="foot">Live from the Tower A Basement Close-Out List (Combined Works to Go)</footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -199,7 +199,7 @@ function renderRoom(D,room){
 function renderIndex(D){
   const all=D.items, open=all.filter(i=>i.state!=="closed"), closed=all.length-open.length;
   const byScope=scopeTotals(all);
-  $("#title").textContent="BOH engineering progress";
+  $("#title").textContent="BOH progress";
   $("#sub").textContent=`${D.rooms.length} rooms · ${all.length} close-out items`;
   $("#tags").innerHTML=`<span class="tag">${open.length} open</span><span class="tag">${closed} closed</span>`;
   let h=`<section class="card"><div class="kpis">
