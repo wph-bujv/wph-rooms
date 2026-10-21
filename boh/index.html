@@ -20,9 +20,10 @@
   --s-MEP:#60a5fa;--s-FIT:#f59e0b;--s-KIT:#2dd4bf;--s-ELV:#a78bfa;--s-FLS:#f87171;--s-TC:#22d3ee;--s-CLN:#a3e635;--s-GEN:#9ca3af;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.logos{background:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;gap:12px}.logos img{height:46px;width:auto}.logos img.bujv{height:38px}.logos img.dsa{height:26px}
 header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 16px 24px}
 header .proj{font-size:12px;opacity:.85;letter-spacing:.05em;text-transform:uppercase}
-header .loc{font-size:18px;font-weight:800;letter-spacing:.03em;margin-top:4px;opacity:.95}
+header .loc{font-size:20px;font-weight:800;letter-spacing:.03em;margin-top:4px;opacity:.95}
 header h1{margin:6px 0 2px;font-size:28px;line-height:1.15;letter-spacing:.01em}
 header .sub{font-size:15px;opacity:.95}
 header .upd{font-size:12px;opacity:.85;margin-top:12px}header .upd:empty{display:none}
@@ -81,13 +82,23 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--line);bor
 .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand2);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 10px}
 @keyframes s{to{transform:rotate(360deg)}}
 .back{display:inline-block;margin-top:10px;font-size:13px;opacity:.9}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tbl th{background:var(--track);color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;font-weight:700;padding:8px 6px;text-align:center}
+.tbl th:first-child,.tbl td:first-child{text-align:left;padding-left:14px}
+.tbl td{padding:9px 6px;border-top:1px solid var(--line);text-align:center}
+.tbl td:last-child,.tbl th:last-child{padding-right:14px}
+.tbl td.d{font-weight:600}.tbl td.d .sw{display:inline-block;margin-right:8px;vertical-align:-1px}
+.tbl td b{font-size:15px}.tbl .z{color:var(--muted)}
+.tbl small{display:block;color:var(--muted);font-size:11px}
+.tbl tr.tot td{background:var(--track);font-weight:800}
 footer{color:var(--muted);font-size:12px;text-align:center;padding:4px 16px 24px}
 .note{font-size:12.5px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line)}
 @media (max-width:380px){.kpi b{font-size:20px}header h1{font-size:24px}}
 </style>
 </head>
 <body>
-<header><div class="proj">Qiddiya Water Park Hotel · BUJV</div><div class="loc" id="loc">TOWER A · BASEMENT</div><div class="proj" style="margin-top:2px">Back of House (BOH)</div><h1 id="title">BOH progress</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div><div id="nav"></div></header>
+<div class="logos"><img src="logos/qiddiya.png" alt="Qiddiya"><img src="logos/bujv.png" alt="BUJV" class="bujv"><img src="logos/dsa.png" alt="DSA" class="dsa"></div>
+<header><div class="proj">Qiddiya Water Park Hotel</div><div class="loc" id="loc">TOWER A · BASEMENT</div><div class="proj" style="margin-top:2px">Back of House (BOH)</div><h1 id="title">BOH progress</h1><div class="sub" id="sub"></div><div class="tags" id="tags"></div><div class="upd" id="upd"></div><div id="nav"></div></header>
 <main id="app"><div class="card msg"><div class="spin"></div>Loading latest data…</div></main>
 <footer id="foot">Live from the Tower A Basement Close-Out List (Combined Works to Go)</footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -170,7 +181,12 @@ function renderRoom(D,room){
     <div class="kpi"><b>${fmtPct(pct(nOpen,allOpen.length))}</b><span>of ${allOpen.length} BOH open items</span></div>
     <div class="kpi"><b>${fmtPct(pct(closed,n))}</b><span>Items closed (${closed}/${n})</span></div></div>
     <div class="pad"><div class="muted" style="font-size:13px">Room share of open items, by scope</div>${stackBar(Object.fromEntries(SCOPES.map(s=>[s.code,byScope[s.code].filter(i=>i.state!=="closed").length])),Math.max(nOpen,1))}<div class="muted" style="font-size:12.5px">Rank ${rank} of ${D.rooms.length} BOH rooms by open items</div></div>${legend()}</section>`;
-  h+=`<section class="card"><h2>Scope status <small>open items · share of room</small></h2>`;
+  {const tot=allOpen.length;
+  h+=`<section class="card"><h2>Snags by discipline <small>live</small></h2><table class="tbl"><thead><tr><th>Discipline</th><th>Snags</th><th>% of room</th><th>% of BOH discipline</th></tr></thead><tbody>`;
+  SCOPES.forEach(s=>{const o=byScope[s.code].filter(i=>i.state!=="closed").length,B=bohScope[s.code].length;if(s.code==="GEN"&&!o)return;
+    h+=`<tr><td class="d"><i class="sw" style="background:var(--s-${s.code})"></i>${esc(s.name)}</td><td${o?"":' class="z"'}><b>${o}</b></td><td${o?"":' class="z"'}>${nOpen?fmtPct(pct(o,nOpen)):"–"}</td><td${o?"":' class="z"'}>${B?fmtPct(pct(o,B)):"–"}<small>of ${B}</small></td></tr>`;});
+  h+=`<tr class="tot"><td>Room total</td><td>${nOpen}</td><td>100%</td><td>${fmtPct(pct(nOpen,tot))}<small>of all BOH (${tot})</small></td></tr></tbody></table></section>`;}
+  h+=`<section class="card"><h2>Status by discipline <small>share of room</small></h2>`;
   SCOPES.forEach(s=>{
     const L=byScope[s.code]; if(s.code==="GEN"&&!L.length)return;
     const o=L.filter(i=>i.state!=="closed").length, st=scopeStatus(L), c=L.length-o;
